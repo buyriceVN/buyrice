@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sổ Lộ Trình Học Sinh</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f1e8; --panel:#fffdf8; --panel2:#faf6ee; --ink:#1f2933; --muted:#6b6f76; --line:#e5ddcd; --line2:#efe8da;
+  --accent:#c8502a; --accent-soft:#f7e3d9; --teal:#2d6a66; --teal-soft:#dcebe8;
+  --s0:#9aa0a6; --s0bg:#eeece7; --s1:#b7791f; --s1bg:#fbefd5; --s2:#2b6cb0; --s2bg:#e1ecf8; --s3:#2f855a; --s3bg:#dff1e6;
+  --danger:#c53030; --danger-soft:#fbe2e2;
+  --radius:12px; --shadow:0 1px 2px rgba(60,40,10,.06),0 4px 14px rgba(60,40,10,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Be Vietnam Pro",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Noto Serif",Georgia,serif;font-weight:700;margin:0;letter-spacing:-.01em}
+h1{font-size:26px} h2{font-size:19px} h3{font-size:16px}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--teal)}
+.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.side{background:#1f2933;color:#e9e4d8;padding:20px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#fff}
+.brand b{font-family:"Noto Serif",serif;font-size:17px;display:block;line-height:1.2}
+.brand small{color:#a9a597;font-size:12px}
+.nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:#d8d2c3;border:0;background:none;width:100%;text-align:left}
+.nav:hover{background:#2a3642}
+.nav.on{background:#334250;color:#fff}
+.nav svg{flex:none;opacity:.85}
+.side .sec{display:flex;justify-content:space-between;align-items:center;margin:18px 10px 6px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:#a09b8d}
+.side .sec button{background:#334250;border:0;color:#fff;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:12px}
+.side .sec button:hover{background:var(--accent)}
+.stu-link{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;cursor:pointer;border:0;background:none;width:100%;text-align:left;color:#d8d2c3}
+.stu-link:hover{background:#2a3642}
+.stu-link.on{background:#334250;color:#fff}
+.stu-link .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stu-link .pc{font-size:11.5px;color:#a9a597}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.side .foot{margin-top:auto;padding:14px 10px 0;font-size:12px;color:#a09b8d}
+.mode{display:inline-flex;align-items:center;gap:6px}
+.mode i{width:7px;height:7px;border-radius:50%;background:#48bb78;display:inline-block}
+.mode.local i{background:#ecc94b}
+.main{padding:28px 36px 60px;max-width:1180px;width:100%}
+.topbar{display:none}
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.head .sub{color:var(--muted);margin-top:4px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+.btn{text-decoration:none;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);padding:7px 12px;border-radius:9px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:#cfc4ae;background:#fff}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{background:#b44522}
+.btn.teal{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--line2)}
+.btn.sm{padding:4px 9px;font-size:13px;border-radius:7px}
+.btn.danger{color:var(--danger)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.ib{border:0;background:none;padding:5px;border-radius:6px;cursor:pointer;color:var(--muted);display:inline-grid;place-items:center}
+.ib:hover{background:var(--line2);color:var(--ink)}
+.ib.del:hover{color:var(--danger);background:var(--danger-soft)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:18px 20px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi{padding:16px 18px}
+.kpi .n{font-family:"Noto Serif",serif;font-size:30px;font-weight:700;line-height:1.1}
+.kpi .l{color:var(--muted);font-size:13px;margin-top:2px}
+.kpi.warn .n{color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.scard{padding:16px;cursor:pointer;transition:transform .12s,border-color .12s;text-align:left;width:100%;font:inherit}
+.scard:hover{transform:translateY(-2px);border-color:#d3c7b0}
+.scard .top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;flex:none;font-size:14px}
+.scard .meta{color:var(--muted);font-size:12.5px}
+.bar{height:8px;background:var(--line2);border-radius:99px;overflow:hidden;display:flex}
+.bar span{display:block;height:100%}
+.bar .b3{background:var(--s3)} .bar .b2{background:var(--s2)} .bar .b1{background:#e2b356}
+.stats{display:flex;gap:14px;margin-top:10px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.stats b{color:var(--ink)}
+.list-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.list-item:last-child{border-bottom:0}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--line2);color:#4a4f56;white-space:nowrap}
+.tag.s0{background:var(--s0bg);color:#5f6368}.tag.s1{background:var(--s1bg);color:var(--s1)}.tag.s2{background:var(--s2bg);color:var(--s2)}.tag.s3{background:var(--s3bg);color:var(--s3)}
+.tag.red{background:var(--danger-soft);color:var(--danger)}
+.tag.acc{background:var(--accent-soft);color:var(--accent)}
+.tag.teal{background:var(--teal-soft);color:var(--teal)}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:4px 0 20px;overflow-x:auto}
+.tab{border:0;background:none;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .cnt{background:var(--accent);color:#fff;border-radius:99px;font-size:11px;padding:0 6px;margin-left:5px}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.12em;background:var(--panel2);border:1px dashed #cdbf9f;border-radius:7px;padding:3px 8px;font-weight:600}
+/* roadmap */
+.mod{margin-bottom:14px;overflow:hidden}
+.mod-h{display:flex;align-items:center;gap:10px;padding:12px 14px 12px 16px;background:var(--panel2);border-bottom:1px solid var(--line2)}
+.mod-h .idx{font-family:"Noto Serif",serif;font-weight:700;color:var(--accent);font-size:15px;min-width:22px}
+.mod-h h3{flex:1;min-width:0}
+.mod-h .prog{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.mod-h .minibar{width:80px}
+.topic{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 16px;border-bottom:1px solid var(--line2)}
+.topic:last-of-type{border-bottom:0}
+.topic .ti{flex:1;min-width:0}
+.topic .ti .when{font-size:12px;color:var(--muted)}
+.topic .acts{display:flex;gap:0;opacity:.0;transition:opacity .1s}
+.topic:hover .acts,.mod-h:hover .acts{opacity:1}
+.mod-h .acts{display:flex;opacity:.35}
+.chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--s0);display:grid;place-items:center;flex:none}
+.chk.s1{border-color:var(--s1);background:var(--s1bg)}
+.chk.s2{border-color:var(--s2);background:var(--s2)}
+.chk.s3{border-color:var(--s3);background:var(--s3)}
+.chk svg{color:#fff}
+.chk.s1 svg{color:var(--s1)}
+select.st{border:1px solid transparent;border-radius:99px;padding:3px 26px 3px 10px;font-size:12.5px;font-weight:500;cursor:pointer;appearance:none;-webkit-appearance:none;background-repeat:no-repeat;background-position:right 8px center;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' fill='none' stroke-width='1.5'/%3E%3C/svg%3E")}
+select.st.s0{background-color:var(--s0bg);color:#5f6368}select.st.s1{background-color:var(--s1bg);color:var(--s1)}select.st.s2{background-color:var(--s2bg);color:var(--s2)}select.st.s3{background-color:var(--s3bg);color:var(--s3)}
+.addrow{display:flex;gap:8px;padding:10px 14px 12px 16px}
+.addrow input{flex:1}
+.inp,.addrow input,textarea.inp,select.inp{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 11px;width:100%;outline:none}
+.inp:focus,.addrow input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+textarea.inp{resize:vertical;min-height:80px}
+label.f{display:block;margin-bottom:14px}
+label.f>span{display:block;font-weight:600;font-size:13px;margin-bottom:5px}
+label.f>small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.seg{display:inline-flex;background:var(--line2);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty h3{color:var(--ink);margin-bottom:6px}
+/* tasks */
+.task{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--line2)}
+.task:last-child{border-bottom:0}
+.ticon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none}
+.ticon.d{background:var(--teal-soft);color:var(--teal)}
+.ticon.t{background:var(--accent-soft);color:var(--accent)}
+.task .body{flex:1;min-width:0}
+.task .ttl{font-weight:600}
+.task .chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.score{font-family:"Noto Serif",serif;font-weight:700;font-size:18px}
+.score.good{color:var(--s3)}.score.mid{color:var(--s1)}.score.low{color:var(--danger)}
+.filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);background:var(--panel);border-radius:99px;padding:4px 12px;cursor:pointer;font-size:13px}
+.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+/* diff */
+.diff{line-height:2;font-size:15px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.diff .ok{color:var(--s3)}
+.diff .miss{color:var(--danger);text-decoration:underline dashed;text-underline-offset:4px;background:var(--danger-soft);border-radius:4px;padding:0 3px}
+.diff .extra{color:#9b6a00;text-decoration:line-through;background:#fdf3d7;border-radius:4px;padding:0 3px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px}
+/* sessions */
+.sess{display:grid;grid-template-columns:96px 1fr auto;gap:16px;padding:14px 16px;border-bottom:1px solid var(--line2)}
+.sess:last-child{border-bottom:0}
+.sess .d{font-family:"Noto Serif",serif;font-weight:700}
+.sess .d small{display:block;font-family:"Be Vietnam Pro";font-weight:400;color:var(--muted);font-size:12px}
+.pre{white-space:pre-wrap}
+/* knowledge */
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.mbar{margin-bottom:14px}
+.mbar .t{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:5px}
+.legend2{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:14px}
+.legend2 i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.ring{position:relative;width:120px;height:120px;flex:none}
+.ring .c{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .c b{font-family:"Noto Serif",serif;font-size:28px;display:block;line-height:1}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(31,41,51,.45);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+.modal{background:var(--panel);border-radius:16px;width:100%;max-width:640px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal.wide{max-width:820px}
+.modal.narrow{max-width:440px}
+.modal .mh{padding:18px 22px 6px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.modal .mb{padding:12px 22px}
+.modal .mf{padding:12px 22px 18px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--line2);margin-top:6px;flex-wrap:wrap}
+.tpick{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff}
+.tpick .g{font-weight:600;font-size:12.5px;color:var(--muted);margin:8px 0 4px}
+.tpick label{display:flex;gap:8px;align-items:center;padding:3px 0;cursor:pointer}
+.only-d{display:none}
+.is-d .only-d{display:block}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1f2933;color:#fff;padding:10px 16px;border-radius:10px;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:14px;max-width:90vw}
+.banner{padding:10px 14px;border-radius:10px;margin-bottom:16px;font-size:13.5px;display:flex;gap:10px;align-items:center}
+.banner.warn{background:#fdf3d7;color:#7a5a00;border:1px solid #f1dd9f}
+.banner.info{background:var(--teal-soft);color:#1d4f4b;border:1px solid #bcd9d4}
+/* player */
+.player{background:#1f2933;border-radius:12px;padding:12px;color:#fff}
+.player video{width:100%;max-height:340px;border-radius:8px;background:#000;display:block}
+.player audio{width:100%;display:block}
+.pctl{display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.pctl button{background:#334250;border:0;color:#fff;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:13px}
+.pctl button:hover{background:#43566a}
+.pctl button.on{background:var(--accent)}
+.pctl .lbl{font-size:12px;color:#b9c2cc;margin:0 4px 0 8px}
+.kbd{font-family:ui-monospace,monospace;font-size:11.5px;background:var(--line2);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px}
+/* student portal */
+.portal{max-width:880px;margin:0 auto;padding:28px 20px 60px}
+.phead{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.gate{max-width:420px;margin:12vh auto;padding:30px;text-align:center}
+.gate .code-in{text-align:center;font-size:24px;letter-spacing:.3em;text-transform:uppercase;font-weight:700;margin:16px 0}
+.ws textarea{min-height:200px;font-size:15.5px;line-height:1.7}
+.bigscore{font-family:"Noto Serif",serif;font-size:44px;font-weight:700;line-height:1}
+.steps{counter-reset:s;list-style:none;padding:0;margin:0}
+.steps li{counter-increment:s;position:relative;padding:0 0 18px 44px}
+.steps li:before{content:counter(s);position:absolute;left:0;top:-2px;width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+.hide{display:none!important}
+.wkbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.wkbar .lbl{font-weight:600;min-width:200px;text-align:center}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.witem{padding:16px 18px;position:relative}
+.witem .wt{display:flex;align-items:flex-start;gap:8px}
+.witem .ww{font-family:"Noto Serif",serif;font-size:20px;font-weight:700;line-height:1.25;flex:1;min-width:0;word-break:break-word}
+.witem .ipa{color:var(--muted);font-size:13px;margin-top:2px}
+.witem .mn{margin-top:8px;font-weight:500}
+.witem .ex{margin-top:6px;color:#4a4f56;font-style:italic;font-size:13.5px}
+.witem .wacts{display:flex;gap:0;margin-top:10px;border-top:1px solid var(--line2);padding-top:6px}
+.wtype{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;margin-bottom:8px}
+.wtype.word{background:var(--teal-soft);color:var(--teal)}
+.wtype.expr{background:var(--accent-soft);color:var(--accent)}
+.spk{border:0;background:var(--line2);border-radius:99px;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none}
+.spk:hover{background:var(--teal);color:#fff}
+.wkhero{background:linear-gradient(135deg,#fff7ec,#fdf0e6);border:1px solid #f0d8c4;border-radius:var(--radius);padding:16px 18px;margin-bottom:22px}
+.wkhero h3{display:flex;align-items:center;gap:8px;color:var(--accent);margin-bottom:12px}
+.wkhero .wgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.plan{background:#fbf7ee;border-bottom:1px solid var(--line2);padding:14px 18px 16px 48px}
+.plan .ph{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.plan .lk{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:#7a5a00;background:#fdf3d7;border:1px solid #f1dd9f;border-radius:99px;padding:1px 8px}
+.plan .pb{max-height:none;font-size:14px}
+.plan .pb h4{font-family:"Noto Serif",serif;font-size:15.5px;margin:16px 0 6px;color:var(--accent)}
+.plan .pb h5{font-size:13.5px;margin:12px 0 4px}
+.plan .pb ul{margin:4px 0 8px;padding-left:20px}
+.plan .pb li{margin:2px 0}
+.plan .pb p{margin:4px 0}
+.btn.plan-on{background:var(--accent-soft);border-color:#f0c9b6;color:var(--accent)}
+.notes{display:grid;grid-template-columns:290px 1fr;gap:16px;align-items:start}
+.notes>*{min-width:0}
+.portal{overflow-x:hidden}
+.nlist{padding:12px;position:sticky;top:12px}
+.nitem{display:block;width:100%;text-align:left;border:0;background:none;padding:10px 10px;border-radius:9px;cursor:pointer;font:inherit}
+.nitem:hover{background:var(--panel2)}
+.nitem.on{background:var(--accent-soft)}
+.nitem .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nitem .sn{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.neditor{padding:18px 22px}
+.neditor .ttl{font-family:"Noto Serif",serif;font-size:21px;font-weight:700;border:0;background:transparent;width:100%;outline:none;padding:4px 0;margin:6px 0 8px}
+.neditor textarea{border:0;background:repeating-linear-gradient(transparent,transparent 29px,var(--line2) 29px,var(--line2) 30px);line-height:30px;width:100%;min-height:360px;outline:none;resize:none;font-size:15px;padding:0}
+.nsk{display:flex;gap:5px;flex-wrap:wrap}
+.nsk label{cursor:pointer}.nsk input{display:none}
+.nsk span{display:inline-block;padding:3px 10px;border-radius:99px;border:1.5px solid var(--line);font-size:12.5px;font-weight:500;color:var(--muted)}
+.nsk input:checked+span{border-color:var(--skc);background:var(--skbg);color:var(--skc)}
+.tnote{padding:16px 18px;margin-bottom:12px}
+@media (max-width:900px){.notes{grid-template-columns:1fr}.nlist{position:static}}
+.skgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.skc{padding:16px 18px;border-top:4px solid var(--skc)}
+.skc .nm{font-weight:600;color:var(--skc);display:flex;align-items:center;gap:6px}
+.skc .pc{font-family:"Noto Serif",serif;font-size:30px;font-weight:700;line-height:1.1;margin:6px 0 8px}
+.skchip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--skbg);color:var(--skc);white-space:nowrap}
+select.sksel{border:1px solid transparent;border-radius:99px;padding:3px 24px 3px 10px;font-size:12px;font-weight:600;cursor:pointer;appearance:none;-webkit-appearance:none;background-repeat:no-repeat;background-position:right 8px center;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-color:var(--skbg);color:var(--skc)}
+.skmini{display:grid;grid-template-columns:auto 1fr auto;gap:5px 8px;align-items:center;font-size:12px;margin-top:10px}
+.skmini .bar{height:6px}
+.skpick{display:flex;gap:6px;flex-wrap:wrap}
+.skpick label{cursor:pointer}
+.skpick input{display:none}
+.skpick span{display:inline-block;padding:6px 12px;border-radius:99px;border:1.5px solid var(--line);font-weight:500}
+.skpick input:checked+span{border-color:var(--skc);background:var(--skbg);color:var(--skc)}
+@media (max-width:900px){.skgrid{grid-template-columns:1fr 1fr}}
+.main,.grid2>*,.kgrid>*,.sgrid>*{min-width:0}
+.addrow input{background:transparent;border-color:transparent}
+.addrow input:hover{border-color:var(--line);background:#fff}
+.addrow input:focus{background:#fff}
+.addrow .btn{opacity:.6}.addrow:focus-within .btn{opacity:1}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:0 auto 0 0;width:270px;z-index:40;transform:translateX(-100%);transition:transform .2s}
+  .side.open{transform:none}
+  .topbar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#1f2933;color:#fff;position:sticky;top:0;z-index:30}
+  .topbar b{font-family:"Noto Serif",serif}
+  .topbar button{background:none;border:0;color:#fff;cursor:pointer;padding:4px}
+  .main{padding:20px 16px 50px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .grid2,.kgrid,.f2,.f3{grid-template-columns:1fr}
+  .topic .acts{opacity:1}
+  .sess{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="modal"></div>
+<div id="mediaHolder" style="display:none"></div>
+<script>
+// Supabase project (lisa65181992-sudo's Project). Khoá publishable là khoá công khai; dữ liệu được bảo vệ bằng RLS trong database.
+window.TUTOR_CONFIG = window.TUTOR_CONFIG || {
+  supabaseUrl: 'https://odmcqdgncjpltmklprrv.supabase.co',
+  supabaseAnonKey: 'sb_publishable_z4X_LBXKKyK1PdzXT_YItA_DIERS3xq'
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+/* ============ helpers ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o ?? null));
+const uid = (p = '') => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad2 = n => String(n).padStart(2, '0');
+function today() { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function addDays(iso, n) { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function localISO(iso) { iso = String(iso || ''); if (iso.length > 10) { const d = new Date(iso); if (!isNaN(d)) return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); } return iso.slice(0, 10); }
+function fmtDate(iso) { if (!iso) return ''; const [y, m, d] = localISO(iso).split('-'); return d + '/' + m + '/' + y; }
+function fmtDateShort(iso) { if (!iso) return ''; const [, m, d] = localISO(iso).split('-'); return d + '/' + m; }
+const WD = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+function weekday(iso) { return WD[new Date(iso + 'T00:00:00').getDay()]; }
+function parseTime(s) { s = String(s || '').trim(); if (!s) return null; const p = s.split(':').map(Number); if (p.some(isNaN)) return null; return p.reduce((a, b) => a * 60 + b, 0); }
+function fmtTime(n) { if (n == null || n === '') return ''; n = Math.max(0, Math.round(n)); const h = Math.floor(n / 3600), m = Math.floor(n % 3600 / 60), s = n % 60; return (h ? h + ':' + pad2(m) : m) + ':' + pad2(s); }
+const COLORS = ['#c8502a', '#2d6a66', '#6b46c1', '#b7791f', '#2b6cb0', '#9c4668', '#2f855a', '#7b5e3b'];
+const CODE_CH = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function newCode() { let c = ''; for (let i = 0; i < 6; i++) c += CODE_CH[Math.floor(Math.random() * CODE_CH.length)]; return c; }
+function initials(name) { const p = String(name || '?').trim().split(/\s+/); return (p[p.length - 1][0] || '?').toUpperCase(); }
+const STATUS = [
+  { v: 0, label: 'Chưa học', cls: 's0' },
+  { v: 1, label: 'Đang học', cls: 's1' },
+  { v: 2, label: 'Đã cover', cls: 's2' },
+  { v: 3, label: 'Thành thạo', cls: 's3' },
+];
+const SKILLS = [
+  { k: 'speaking', label: 'Speaking', short: 'Speaking', color: '#a2416b', bg: '#f7e4ec' },
+  { k: 'listening', label: 'Listening', short: 'Listening', color: '#2d6a66', bg: '#dcebe8' },
+  { k: 'writing', label: 'Writing (Task 2)', short: 'Writing', color: '#5b3fb0', bg: '#e9e3f7' },
+  { k: 'reading', label: 'Reading', short: 'Reading', color: '#a0661a', bg: '#f8ecd6' },
+];
+const SKILL_KEYS = SKILLS.map(x => x.k);
+const skillOf = k => SKILLS.find(x => x.k === k) || null;
+const skVars = k => { const x = skillOf(k); return x ? '--skc:' + x.color + ';--skbg:' + x.bg : '--skc:#6b6f76;--skbg:#eeece7'; };
+function skChip(k) { const x = skillOf(k); return '<span class="skchip" style="' + skVars(k) + '">' + esc(x ? x.label : 'Chưa gắn kỹ năng') + '</span>'; }
+const ICON = {
+  spark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>',
+  sound: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>',
+  left: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
+  right: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
+  lock: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+  home: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>',
+  map: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>',
+  share: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>',
+  head: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></svg>',
+  doc: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>',
+  plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  up: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>',
+  down: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>',
+  edit: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  trash: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>',
+  check: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>',
+  half: '<svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="3" fill="currentColor"/></svg>',
+  copy: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>',
+  eye: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  ext: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>',
+  cal: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  menu: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+  x: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  book: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>',
+};
+
+/* ============ state ============ */
+const COLS = ['students', 'tasks', 'sessions', 'subs', 'templates', 'notes', 'plans', 'weekly'];
+const S = {
+  mode: 'loading', role: null, db: null, user: null, assets: null, canWrite: true,
+  data: { students: {}, tasks: {}, sessions: {}, subs: {}, templates: {}, notes: {}, plans: {}, weekly: {} }, openPlans: {}, wk: null,
+  noteOpen: null, noteDraft: null, noteStatus: '', noteQ: '', notesLocalOnly: false,
+  loadedCols: {}, stale: false, banner: '',
+  view: 'overview', sid: null, tab: 'roadmap', taskFilter: 'all', tplId: null,
+  studentCode: null, previewSid: null, pTab: 'tasks', openTask: null, checks: {}, sideOpen: false,
+};
+const LS_DATA = 'tutorpath-data-v1', LS_CODE = 'tutorpath-code', LS_DRAFT = 'tutorpath-draft-';
+function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
+function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { } }
+
+/* ============ store (Supabase) ============ */
+const CFG = window.TUTOR_CONFIG || {};
+let sb = null;
+const chains = {};
+function persistLocal() { lsSet(LS_DATA, JSON.stringify(S.data)); }
+async function remoteSet(col, id, body) {
+  if (S.role === 'teacher') {
+    const { error } = await sb.from('docs').upsert({ col, id, data: body, updated_at: new Date().toISOString() });
+    if (error) throw error; return;
+  }
+  if (col === 'subs') {
+    const { data, error } = await sb.rpc('student_submit', { p_code: S.studentCode, p_task: id, p_text: body.text || '', p_score: body.score == null ? null : Math.round(body.score) });
+    if (error || !data) throw error || { code: 'denied' }; return;
+  }
+  if (col === 'notes') {
+    const { data, error } = await sb.rpc('student_note_save', { p_code: S.studentCode, p_id: id, p_data: body });
+    if (error || !data) throw error || { code: 'denied' }; return;
+  }
+  throw { code: 'denied' };
+}
+async function remoteDel(col, id) {
+  if (S.role === 'teacher') { const { error } = await sb.from('docs').delete().match({ col, id }); if (error) throw error; return; }
+  if (col === 'notes') { const { error } = await sb.rpc('student_note_delete', { p_code: S.studentCode, p_id: id }); if (error) throw error; return; }
+  throw { code: 'denied' };
+}
+async function saveDoc(col, id, obj, quiet) {
+  const body = clone(obj);
+  S.data[col] = Object.assign({}, S.data[col], { [id]: body });
+  if (S.mode === 'local') { persistLocal(); render(); return true; }
+  render();
+  const key = col + '/' + id;
+  const p = (chains[key] || Promise.resolve()).then(() => remoteSet(col, id, body));
+  chains[key] = p.catch(() => { });
+  try { await p; return true; } catch (e) { if (!quiet) writeError(e); return false; }
+}
+async function delDoc(col, id) {
+  const copy = Object.assign({}, S.data[col]); delete copy[id]; S.data[col] = copy;
+  if (S.mode === 'local') { persistLocal(); render(); return true; }
+  render();
+  const key = col + '/' + id;
+  const p = (chains[key] || Promise.resolve()).then(() => remoteDel(col, id));
+  chains[key] = p.catch(() => { });
+  try { await p; return true; } catch (e) { writeError(e); return false; }
+}
+function writeError(e) {
+  const code = e && (e.code || '');
+  if (code === '42501' || code === 'denied') toast('Bạn không có quyền lưu thay đổi này.');
+  else if (/fetch|network/i.test((e && e.message) || '')) toast('Mất kết nối mạng, chưa lưu được.');
+  else toast('Chưa lưu được, thử lại sau ít phút.');
+}
+function startLocal(reason) {
+  S.mode = 'local'; S.role = 'teacher'; S.banner = reason || '';
+  try { const raw = lsGet(LS_DATA); if (raw) { const d = JSON.parse(raw); COLS.forEach(c => S.data[c] = d[c] || {}); } } catch (e) { }
+  COLS.forEach(c => S.loadedCols[c] = true);
+  afterLoad();
+}
+async function boot() {
+  render();
+  if (!CFG.supabaseUrl || !CFG.supabaseAnonKey || !window.supabase) return startLocal('Chưa cấu hình Supabase: dữ liệu chỉ lưu trên trình duyệt này.');
+  sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey);
+  const qs = new URLSearchParams(location.search); const qc = (qs.get('ma') || '').trim().toUpperCase();
+  if (qc) { lsSet(LS_CODE, qc); try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { } }
+  let session = null;
+  try { session = (await sb.auth.getSession()).data.session; } catch (e) { }
+  if (session && !qc && await enterTeacher()) return;
+  enterStudent();
+  if (S.authMsg) { S.mode = 'login'; render(); }
+}
+async function enterTeacher() {
+  const { data, error } = await sb.rpc('claim_teacher');
+  if (error || !data) { await sb.auth.signOut(); S.authMsg = error ? 'Không kết nối được máy chủ, thử lại sau.' : 'Tài khoản này không có quyền giáo viên.'; return false; }
+  S.mode = 'cloud'; S.role = 'teacher'; S.canWrite = true;
+  try { await loadAllDocs(); } catch (e) { S.stale = true; }
+  COLS.forEach(c => S.loadedCols[c] = true);
+  sb.channel('docs-' + uid()).on('postgres_changes', { event: '*', schema: 'public', table: 'docs' }, p => {
+    if (p.eventType === 'DELETE') { const o = p.old || {}; if (S.data[o.col]) { const c = Object.assign({}, S.data[o.col]); delete c[o.id]; S.data[o.col] = c; } }
+    else { const n = p.new || {}; if (S.data[n.col]) S.data[n.col] = Object.assign({}, S.data[n.col], { [n.id]: n.data }); }
+    render();
+  }).subscribe();
+  afterLoad(true);
+  return true;
+}
+async function loadAllDocs() {
+  const all = []; let from = 0;
+  for (;;) { const { data, error } = await sb.from('docs').select('col,id,data').range(from, from + 999); if (error) throw error; all.push(...data); if (data.length < 1000) break; from += 1000; }
+  const d = {}; COLS.forEach(c => d[c] = {}); all.forEach(r => { if (d[r.col]) d[r.col][r.id] = r.data; });
+  COLS.forEach(c => S.data[c] = d[c]); S.stale = false;
+}
+function enterStudent() {
+  S.mode = 'cloud'; S.role = 'student'; S.canWrite = true;
+  S.studentCode = lsGet(LS_CODE) || null;
+  firstLoadDone = true; render();
+  if (S.studentCode) loadBundle();
+}
+let bundleBusy = false;
+async function loadBundle(silent) {
+  if (!S.studentCode || bundleBusy) return; bundleBusy = true;
+  if (!silent) { S.bundleLoading = true; render(); }
+  try {
+    const { data, error } = await sb.rpc('student_bundle', { p_code: S.studentCode });
+    if (error) throw error;
+    COLS.forEach(c => S.data[c] = (data && data[c]) || {}); S.stale = false; S.bundleChecked = true;
+  } catch (e) { S.stale = true; if (!silent) toast('Không kết nối được, em thử lại sau nhé.'); }
+  bundleBusy = false; S.bundleLoading = false; render();
+}
+setInterval(() => { if (document.visibilityState !== 'visible') return; if (S.role === 'student' && S.studentCode) loadBundle(true); }, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !sb) return;
+  if (S.role === 'student' && S.studentCode) loadBundle(true);
+  else if (S.role === 'teacher' && S.mode === 'cloud') loadAllDocs().then(render).catch(() => { });
+});
+let firstLoadDone = false;
+function afterLoad(force) {
+  if (!firstLoadDone && (force || S.mode === 'local' || COLS.every(c => S.loadedCols[c]))) {
+    firstLoadDone = true;
+    readHash();
+  }
+  render();
+}
+
+/* ============ derived ============ */
+const studentList = () => Object.entries(S.data.students).map(([id, s]) => Object.assign({ id }, s)).sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''));
+const activeStudents = () => studentList().filter(s => !s.archived);
+const getStudent = id => S.data.students[id] ? Object.assign({ id }, S.data.students[id]) : null;
+function skillStats(st, k) {
+  const ts = allTopics(st).filter(t => k === '' ? !SKILL_KEYS.includes(t.skill) : t.skill === k); const c = [0, 0, 0, 0]; ts.forEach(t => c[t.status || 0]++);
+  return { total: ts.length, c, pct: ts.length ? Math.round((c[2] + c[3]) / ts.length * 100) : 0, ts };
+}
+function allTopics(st) { const out = []; ((st && st.modules) || []).forEach(m => (m.topics || []).forEach(t => out.push(Object.assign({}, t, { mid: m.id, mtitle: m.title, skill: m.skill || '' })))); return out; }
+function topicMap(st) { const m = {}; allTopics(st).forEach(t => m[t.id] = t); return m; }
+function coverage(st) {
+  const ts = allTopics(st); const c = [0, 0, 0, 0]; ts.forEach(t => c[t.status || 0]++);
+  return { total: ts.length, c, pct: ts.length ? Math.round((c[2] + c[3]) / ts.length * 100) : 0 };
+}
+function tasksOf(sid) {
+  return Object.entries(S.data.tasks).map(([id, t]) => Object.assign({ id }, t)).filter(t => t.studentId === sid)
+    .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+}
+function sessionsOf(sid) {
+  return Object.entries(S.data.sessions).map(([id, s]) => Object.assign({ id }, s)).filter(s => s.studentId === sid)
+    .sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || ''));
+}
+function taskState(t) {
+  if (t.reviewedAt) return 'reviewed';
+  if (S.data.subs[t.id]) return 'submitted';
+  if (t.due && t.due < today()) return 'overdue';
+  return 'assigned';
+}
+const STATE_TAG = {
+  assigned: '<span class="tag">Chưa nộp</span>',
+  overdue: '<span class="tag red">Quá hạn</span>',
+  submitted: '<span class="tag acc">Chờ chấm</span>',
+  reviewed: '<span class="tag s3">Đã chấm</span>',
+};
+function taskScore(t) { if (t.grade != null && t.grade !== '') return Number(t.grade); const s = S.data.subs[t.id]; return s && s.score != null ? s.score : null; }
+function scoreCls(n) { return n >= 85 ? 'good' : n >= 60 ? 'mid' : 'low'; }
+function avgDictation(sid) {
+  const sc = tasksOf(sid).filter(t => t.type === 'dictation').map(taskScore).filter(n => n != null);
+  return sc.length ? Math.round(sc.reduce((a, b) => a + b, 0) / sc.length) : null;
+}
+function lastSession(sid) { const s = sessionsOf(sid)[0]; return s ? s.date : null; }
+
+/* ============ notes ============ */
+const LS_NOTES = 'tutorpath-notes-';
+function localNotes(sid) { try { return JSON.parse(lsGet(LS_NOTES + sid) || '{}') || {}; } catch (e) { return {}; } }
+function setLocalNotes(sid, m) { lsSet(LS_NOTES + sid, JSON.stringify(m)); }
+function notesOf(sid, cloudOnly) {
+  const m = {};
+  if (!cloudOnly) Object.entries(localNotes(sid)).forEach(([id, n]) => m[id] = Object.assign({ id, local: true }, n));
+  Object.entries(S.data.notes || {}).forEach(([id, n]) => { if (n.studentId === sid) m[id] = Object.assign({ id }, n); });
+  return Object.values(m).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+}
+const notesCloudOK = () => S.mode === 'local' || (S.canWrite && !S.notesLocalOnly);
+let noteTimer = null;
+function scheduleNoteSave() { clearTimeout(noteTimer); S.noteStatus = 'dirty'; paintNoteStatus(); noteTimer = setTimeout(flushNote, 900); }
+async function flushNote() {
+  clearTimeout(noteTimer); noteTimer = null;
+  const d = S.noteDraft; if (!d || S.noteStatus !== 'dirty') return;
+  const body = { studentId: d.studentId, date: d.date, title: d.title || '', body: d.body || '', skill: d.skill || '', by: d.by || 'student', createdAt: d.createdAt, updatedAt: new Date().toISOString() };
+  S.noteStatus = 'saving'; paintNoteStatus();
+  if (notesCloudOK()) {
+    const had = !!(S.data.notes || {})[d.id];
+    const ok = await saveDoc('notes', d.id, body, true);
+    if (ok) { const L = localNotes(d.studentId); if (L[d.id]) { delete L[d.id]; setLocalNotes(d.studentId, L); } if (S.noteDraft && S.noteDraft.id === d.id && S.noteStatus === 'saving') S.noteStatus = 'saved'; paintNoteStatus(); return; }
+    if (!had) { const c = Object.assign({}, S.data.notes); delete c[d.id]; S.data.notes = c; }
+    S.notesLocalOnly = true;
+  }
+  const L = localNotes(d.studentId); L[d.id] = body; setLocalNotes(d.studentId, L);
+  if (S.noteDraft && S.noteDraft.id === d.id && S.noteStatus === 'saving') S.noteStatus = 'local';
+  render();
+}
+function paintNoteStatus() {
+  const el = $('#noteStatus'); if (!el) return;
+  el.textContent = { dirty: 'Đang gõ…', saving: 'Đang lưu…', saved: 'Đã lưu', local: 'Đã lưu trên máy này' }[S.noteStatus] || '';
+}
+async function openNote(n) { await flushNote(); S.noteOpen = n ? n.id : null; S.noteDraft = n ? clone(n) : null; S.noteStatus = n && n.local ? 'local' : n ? 'saved' : ''; render(); }
+async function newNote(sid, by) {
+  await flushNote();
+  const t = today(); const n = { id: uid('n'), studentId: sid, date: t, title: 'Buổi học ' + fmtDateShort(t), body: '', skill: '', by, createdAt: new Date().toISOString() };
+  S.noteOpen = n.id; S.noteDraft = n; S.noteStatus = 'dirty'; await flushNote(); render();
+  const b = $('[data-k="n-body-' + n.id + '"]'); if (b) b.focus();
+}
+function notesView(s, isPreview) {
+  const all = notesOf(s.id); const q = (S.noteQ || '').toLowerCase().trim();
+  const list = q ? all.filter(n => ((n.title || '') + ' ' + (n.body || '')).toLowerCase().includes(q)) : all;
+  if (S.noteOpen && (!S.noteDraft || S.noteDraft.studentId !== s.id)) { S.noteOpen = null; S.noteDraft = null; }
+  if (!S.noteOpen && all.length) { S.noteDraft = clone(all[0]); S.noteOpen = all[0].id; S.noteStatus = all[0].local ? 'local' : 'saved'; }
+  const d = S.noteDraft; const hasLocal = all.some(n => n.local);
+  let warn = '';
+  if (S.mode === 'cloud' && !notesCloudOK()) warn = '<div class="banner warn">Chưa lưu được lên mạng, ghi chú đang tạm lưu <b>trên máy này</b>. Kiểm tra kết nối rồi bấm “Đưa lên mạng”.</div>' + (hasLocal ? '<div style="margin:-8px 0 14px"><button class="btn sm" data-act="syncNotes" data-id="' + s.id + '">Đưa lên mạng</button></div>' : '');
+  else if (hasLocal && notesCloudOK() && S.mode === 'cloud') warn = '<div class="banner info" style="justify-content:space-between"><span>Có ghi chú đang lưu trên máy này.</span><button class="btn sm" data-act="syncNotes" data-id="' + s.id + '">Đưa lên mạng</button></div>';
+  const listHtml = '<div class="card nlist"><button class="btn pri" style="width:100%;justify-content:center;margin-bottom:10px" data-act="newNote" data-id="' + s.id + '">' + ICON.plus + 'Ghi chú mới</button>' +
+    '<input class="inp" data-k="n-search" data-nq placeholder="Tìm trong ghi chú…" value="' + esc(S.noteQ || '') + '" style="margin-bottom:8px">' +
+    (list.length ? list.map(n => '<button class="nitem ' + (n.id === S.noteOpen ? 'on' : '') + '" data-act="openNote" data-id="' + n.id + '" data-s="' + s.id + '"><div class="small muted">' + fmtDate(n.date) + (n.by === 'teacher' ? ' · Giáo viên ghi' : '') + (n.local ? ' · trên máy' : '') + '</div><div class="t">' + esc(n.id === S.noteOpen && d ? d.title || 'Không tiêu đề' : n.title || 'Không tiêu đề') + '</div><div class="sn">' + esc(((n.id === S.noteOpen && d ? d.body : n.body) || '').slice(0, 80) || '…') + '</div></button>').join('') : '<div class="small muted" style="padding:10px">' + (q ? 'Không tìm thấy.' : 'Chưa có ghi chú nào.') + '</div>') + '</div>';
+  let ed;
+  if (!d) ed = '<div class="card"><div class="empty"><h3>Sổ ghi chú trên lớp</h3><p>Ghi lại từ vựng, cấu trúc, lỗi sai và lời dặn của giáo viên trong mỗi buổi học.</p><button class="btn pri" style="margin-top:10px" data-act="newNote" data-id="' + s.id + '">' + ICON.plus + 'Tạo ghi chú đầu tiên</button></div></div>';
+  else ed = '<div class="card neditor"><div class="row" style="justify-content:space-between"><div class="row"><input type="date" class="inp" data-nf="date" value="' + esc(d.date) + '" style="width:auto;padding:5px 9px"><div class="nsk">' +
+    SKILLS.map(x => '<label style="' + skVars(x.k) + '"><input type="radio" name="nsk" data-nf="skill" value="' + x.k + '"' + (d.skill === x.k ? ' checked' : '') + '><span>' + x.short + '</span></label>').join('') + '</div></div>' +
+    '<div class="row"><span class="small muted" id="noteStatus"></span><button class="ib del" title="Xoá ghi chú" data-act="delNote" data-id="' + d.id + '">' + ICON.trash + '</button></div></div>' +
+    '<input class="ttl" data-nf="title" data-k="n-title-' + d.id + '" value="' + esc(d.title) + '" placeholder="Tiêu đề">' +
+    '<textarea data-nf="body" data-k="n-body-' + d.id + '" placeholder="Ghi chú bài học hôm nay: từ mới, cấu trúc, lỗi sai cần nhớ…">' + esc(d.body) + '</textarea></div>';
+  return warn + '<div class="notes">' + listHtml + ed + '</div>';
+}
+function tNotes(s) {
+  const ns = notesOf(s.id, S.mode === 'cloud');
+  return '<div class="row" style="margin-bottom:12px"><div class="grow muted">Ghi chú học sinh tự viết trên lớp. ' + (S.mode === 'cloud' ? 'Ghi chú em lưu trên máy riêng (khi chỉ có quyền xem) sẽ không hiện ở đây.' : '') + '</div><button class="btn" data-act="preview" data-id="' + s.id + '" data-v="notes">' + ICON.edit + 'Mở sổ ghi chú của em</button></div>' +
+    (ns.length ? ns.map(n => '<div class="card tnote"><div class="row" style="justify-content:space-between;margin-bottom:6px"><div class="row"><b>' + fmtDate(n.date) + '</b>' + (SKILL_KEYS.includes(n.skill) ? skChip(n.skill) : '') + (n.by === 'teacher' ? '<span class="tag">Giáo viên ghi</span>' : '') + '</div><span class="small muted">sửa lần cuối ' + fmtDate(n.updatedAt) + '</span></div><h3 style="margin-bottom:6px">' + esc(n.title || 'Không tiêu đề') + '</h3><div class="pre">' + esc(n.body || '') + '</div></div>').join('')
+      : '<div class="card"><div class="empty"><h3>Chưa có ghi chú</h3><p>Khi học sinh ghi chú ở tab “Ghi chú” trên trang của em, nội dung sẽ hiện ở đây.</p></div></div>');
+}
+
+/* ============ words of the week ============ */
+function mondayOf(iso) { const d = new Date((iso || today()) + 'T00:00:00'); const k = (d.getDay() + 6) % 7; d.setDate(d.getDate() - k); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+const weekId = ws => 'w' + ws;
+function weekLabel(ws) { const e = addDays(ws, 6); return fmtDateShort(ws) + ' – ' + fmtDate(e); }
+function weekItems(ws) { const w = (S.data.weekly || {})[weekId(ws)]; return (w && w.items) || []; }
+function visibleWeeks() {
+  const cur = mondayOf();
+  return Object.values(S.data.weekly || {}).filter(w => w && w.weekStart && w.weekStart <= cur && (w.items || []).length).sort((a, b) => b.weekStart.localeCompare(a.weekStart));
+}
+function speak(text) {
+  try { if (!('speechSynthesis' in window)) { toast('Trình duyệt này không hỗ trợ đọc phát âm.'); return; } const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.9; const v = speechSynthesis.getVoices().find(x => /^en[-_]US/i.test(x.lang)) || speechSynthesis.getVoices().find(x => /^en/i.test(x.lang)); if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { toast('Không phát được âm thanh.'); }
+}
+try { if ('speechSynthesis' in window) speechSynthesis.getVoices(); } catch (e) { }
+function wordCard(it, teacher, ws, idx, n) {
+  const A = 'data-w="' + ws + '" data-i="' + it.id + '"';
+  return '<div class="card witem"><span class="wtype ' + (it.type === 'expr' ? 'expr' : 'word') + '">' + (it.type === 'expr' ? 'Expression' : 'Word') + '</span>' +
+    '<div class="wt"><div class="ww">' + esc(it.text) + '</div><button class="spk" title="Nghe phát âm" data-act="speak" data-t="' + esc(it.text) + '">' + ICON.sound + '</button></div>' +
+    (it.ipa ? '<div class="ipa">' + esc(it.ipa) + '</div>' : '') +
+    (it.meaning ? '<div class="mn">' + esc(it.meaning) + '</div>' : '') +
+    (it.example ? '<div class="ex">“' + esc(it.example) + '” <button class="ib" style="vertical-align:-3px" title="Nghe câu ví dụ" data-act="speak" data-t="' + esc(it.example) + '">' + ICON.sound + '</button></div>' : '') +
+    (teacher ? '<div class="wacts"><button class="ib" title="Lên" data-act="wUp" ' + A + (idx === 0 ? ' disabled' : '') + '>' + ICON.up + '</button><button class="ib" title="Xuống" data-act="wDown" ' + A + (idx === n - 1 ? ' disabled' : '') + '>' + ICON.down + '</button><span class="grow"></span><button class="ib" title="Sửa" data-act="wEdit" ' + A + '>' + ICON.edit + '</button><button class="ib del" title="Xoá" data-act="wDel" ' + A + '>' + ICON.trash + '</button></div>' : '') + '</div>';
+}
+async function saveWeek(ws, mutate) {
+  const cur = clone((S.data.weekly || {})[weekId(ws)] || { weekStart: ws, items: [] });
+  cur.items = cur.items || []; mutate(cur.items); cur.updatedAt = new Date().toISOString();
+  if (!cur.items.length) { if ((S.data.weekly || {})[weekId(ws)]) await delDoc('weekly', weekId(ws)); else render(); return; }
+  await saveDoc('weekly', weekId(ws), cur);
+}
+function wordModal(ws, iid) {
+  const it = iid ? weekItems(ws).find(x => x.id === iid) : { type: 'word' };
+  const m = openModal(mHead((iid ? 'Sửa' : 'Thêm') + ' · tuần ' + weekLabel(ws)) + '<form id="wf"><div class="mb">' +
+    '<div class="seg" style="margin-bottom:14px"><button type="button" data-ty="word" class="' + (it.type !== 'expr' ? 'on' : '') + '">Word (từ)</button><button type="button" data-ty="expr" class="' + (it.type === 'expr' ? 'on' : '') + '">Expression (cụm từ)</button></div>' +
+    '<label class="f"><span>Từ / cụm từ tiếng Anh</span><input class="inp" name="text" required value="' + esc(it.text || '') + '" placeholder="VD: break the ice"></label>' +
+    '<div class="f2"><label class="f"><span>Phiên âm (không bắt buộc)</span><input class="inp" name="ipa" value="' + esc(it.ipa || '') + '" placeholder="/breɪk ðə aɪs/"></label>' +
+    '<label class="f"><span>Nghĩa tiếng Việt</span><input class="inp" name="meaning" value="' + esc(it.meaning || '') + '" placeholder="phá băng, làm quen"></label></div>' +
+    '<label class="f"><span>Câu ví dụ</span><input class="inp" name="example" value="' + esc(it.example || '') + '" placeholder="He told a joke to break the ice."></label>' +
+    '<button type="button" class="btn sm" id="wTry">' + ICON.sound + 'Nghe thử</button>' +
+    '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">' + (iid ? 'Lưu' : 'Thêm') + '</button></div></form>', { size: 'narrow' });
+  let type = it.type === 'expr' ? 'expr' : 'word';
+  m.querySelectorAll('[data-ty]').forEach(b => b.onclick = () => { type = b.dataset.ty; m.querySelectorAll('[data-ty]').forEach(x => x.classList.toggle('on', x === b)); });
+  m.querySelector('#wTry').onclick = () => { const v = m.querySelector('[name=text]').value.trim(); if (v) speak(v); };
+  m.querySelector('#wf').onsubmit = async e => {
+    e.preventDefault(); const f = new FormData(e.target);
+    const n = { id: iid || uid('x'), type, text: String(f.get('text')).trim(), ipa: String(f.get('ipa') || '').trim(), meaning: String(f.get('meaning') || '').trim(), example: String(f.get('example') || '').trim() };
+    if (!n.text) return; closeModal();
+    await saveWeek(ws, items => { const i = items.findIndex(x => x.id === n.id); if (i >= 0) items[i] = n; else items.push(n); });
+  };
+}
+function vWeekly() {
+  const cur = mondayOf(); const ws = S.wk || cur; const items = weekItems(ws);
+  const rel = ws === cur ? '<span class="tag s3">Tuần này · học sinh đang thấy</span>' : ws > cur ? '<span class="tag acc">Tuần sau · học sinh chưa thấy</span>' : '<span class="tag">Tuần trước · học sinh xem trong mục “Từ của tuần”</span>';
+  const prevItems = weekItems(addDays(ws, -7));
+  const all = Object.values(S.data.weekly || {}).filter(w => (w.items || []).length).sort((a, b) => b.weekStart.localeCompare(a.weekStart));
+  return '<div class="head"><div><h1>Từ vựng & cụm từ của tuần</h1><div class="sub">Tất cả học sinh đều thấy ở đầu trang của mình. Mỗi tuần (từ thứ Hai) một danh sách; bạn có thể soạn trước cho tuần sau.</div></div><button class="btn pri" data-act="wAdd" data-w="' + ws + '">' + ICON.plus + 'Thêm từ / cụm từ</button></div>' +
+    '<div class="wkbar"><button class="btn sm" data-act="wkNav" data-v="-7">' + ICON.left + '</button><span class="lbl">Tuần ' + weekLabel(ws) + '</span><button class="btn sm" data-act="wkNav" data-v="7">' + ICON.right + '</button>' + (ws !== cur ? '<button class="btn ghost sm" data-act="wkNav" data-v="0">Về tuần này</button>' : '') + rel + '</div>' +
+    (items.length ? '<div class="wgrid">' + items.map((it, i) => wordCard(it, true, ws, i, items.length)).join('') + '</div>'
+      : '<div class="card"><div class="empty"><h3>Tuần này chưa có từ nào</h3><p>Thêm 3–7 từ hoặc cụm từ, kèm nghĩa và câu ví dụ. Học sinh bấm 🔊 để nghe phát âm.</p><div class="row" style="justify-content:center;margin-top:12px"><button class="btn pri" data-act="wAdd" data-w="' + ws + '">' + ICON.plus + 'Thêm từ đầu tiên</button>' + (prevItems.length ? '<button class="btn" data-act="wCopyPrev" data-w="' + ws + '">Chép ' + prevItems.length + ' mục từ tuần trước</button>' : '') + '</div></div></div>') +
+    (all.length ? '<h3 style="margin:28px 0 10px">Các tuần đã soạn</h3><div class="card pad">' + all.map(w => '<div class="list-item"><b style="min-width:150px">' + weekLabel(w.weekStart) + '</b><div class="grow small muted" style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(w.items.map(x => x.text).join(' · ')) + '</div><span class="tag">' + w.items.length + ' mục</span><button class="btn sm" data-act="wkGo" data-w="' + w.weekStart + '">Mở</button></div>').join('') + '</div>' : '');
+}
+function weeklyHero() {
+  const vw = visibleWeeks(); if (!vw.length) return '';
+  const w = vw[0]; const isCur = w.weekStart === mondayOf();
+  return '<div class="wkhero"><h3>' + ICON.spark + 'Words & Expressions of the week <span class="small" style="font-family:&quot;Be Vietnam Pro&quot;,sans-serif;font-weight:400;color:var(--muted)">· ' + (isCur ? 'tuần này' : 'tuần ' + weekLabel(w.weekStart)) + '</span></h3><div class="wgrid">' + w.items.map(it => wordCard(it, false)).join('') + '</div></div>';
+}
+function weeklyTab() {
+  const vw = visibleWeeks();
+  if (!vw.length) return '<div class="card"><div class="empty"><h3>Chưa có từ của tuần</h3><p>Giáo viên sẽ cập nhật từ vựng và cụm từ mới mỗi tuần.</p></div></div>';
+  return vw.map((w, i) => '<h3 style="margin:' + (i ? '24px' : '0') + ' 0 10px">' + (w.weekStart === mondayOf() ? 'Tuần này · ' : 'Tuần ') + weekLabel(w.weekStart) + '</h3><div class="wgrid">' + w.items.map(it => wordCard(it, false)).join('') + '</div>').join('');
+}
+
+/* ============ dictation scoring ============ */
+function tokenize(text) {
+  const raw = String(text || '').replace(/[’‘`]/g, "'").match(/[\p{L}\p{N}]+(?:['\-][\p{L}\p{N}]+)*/gu) || [];
+  return raw.map(w => ({ w, n: w.toLowerCase() }));
+}
+function diffWords(key, ans) {
+  const a = tokenize(key), b = tokenize(ans), n = a.length, m = b.length;
+  if (!n) return { score: null, ops: b.map(x => ({ t: 'extra', w: x.w })), total: 0, ok: 0 };
+  const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    dp[i][j] = a[i].n === b[j].n ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const ops = []; let i = 0, j = 0;
+  while (i < n && j < m) {
+    if (a[i].n === b[j].n) { ops.push({ t: 'ok', w: a[i].w }); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) { ops.push({ t: 'miss', w: a[i].w }); i++; }
+    else { ops.push({ t: 'extra', w: b[j].w }); j++; }
+  }
+  while (i < n) ops.push({ t: 'miss', w: a[i++].w });
+  while (j < m) ops.push({ t: 'extra', w: b[j++].w });
+  for (let k = 0; k < ops.length;) {
+    if (ops[k].t === 'ok') { k++; continue; }
+    let e = k; while (e < ops.length && ops[e].t !== 'ok') e++;
+    const run = ops.slice(k, e); ops.splice(k, e - k, ...run.filter(o => o.t === 'extra'), ...run.filter(o => o.t === 'miss')); k = e;
+  }
+  const ok = ops.filter(o => o.t === 'ok').length, extra = ops.filter(o => o.t === 'extra').length;
+  const score = Math.max(0, Math.round(ok / Math.max(n, ok + extra) * 100));
+  return { score, ops, total: n, ok, miss: n - ok, extra };
+}
+function diffHTML(r) {
+  return '<div class="diff">' + r.ops.map(o => '<span class="' + o.t + '">' + esc(o.w) + '</span>').join(' ') + '</div>' +
+    '<div class="legend"><span><i style="background:var(--s3)"></i>Đúng (' + r.ok + ')</span><span><i style="background:var(--danger)"></i>Thiếu / nghe sai (' + r.miss + ')</span><span><i style="background:#e2b356"></i>Thừa / viết sai (' + (r.extra || 0) + ')</span></div>';
+}
+function extractAnswer(text) {
+  const m = String(text || '').split(/-{2,}\s*Bài làm\s*-{2,}/i);
+  return (m.length > 1 ? m[m.length - 1] : text).trim();
+}
+
+/* ============ UI primitives ============ */
+let toastT;
+function toast(msg) {
+  let el = $('#toast'); if (!el) { el = document.createElement('div'); el.id = 'toast'; el.className = 'toast'; document.body.appendChild(el); }
+  el.textContent = msg; el.style.display = 'block'; clearTimeout(toastT); toastT = setTimeout(() => el.style.display = 'none', 2800);
+}
+let modalStack = [];
+function openModal(html, opts = {}) {
+  const ov = document.createElement('div'); ov.className = 'ov';
+  ov.innerHTML = '<div class="modal ' + (opts.size || '') + '" role="dialog" aria-modal="true">' + html + '</div>';
+  ov.addEventListener('mousedown', e => { if (e.target === ov && !opts.sticky) closeModal(); });
+  $('#modal').appendChild(ov); modalStack.push({ ov, onClose: opts.onClose });
+  const f = ov.querySelector('[autofocus]') || ov.querySelector('input:not([type=checkbox]):not([type=radio]):not([type=file]),textarea');
+  if (f) f.focus();
+  ov.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => closeModal()));
+  return ov.firstElementChild;
+}
+function closeModal() { const m = modalStack.pop(); if (m) { m.ov.remove(); m.onClose && m.onClose(); } }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalStack.length) closeModal(); });
+function mHead(title) { return '<div class="mh"><h2>' + esc(title) + '</h2><button class="ib" data-close aria-label="Đóng">' + ICON.x + '</button></div>'; }
+function confirmBox(msg, ok = 'Xoá', danger = true) {
+  return new Promise(res => {
+    let done = false;
+    const m = openModal(mHead('Xác nhận') + '<div class="mb"><p style="margin:0">' + esc(msg) + '</p></div><div class="mf"><button class="btn" data-close>Huỷ</button><button class="btn ' + (danger ? 'pri' : 'teal') + '" id="cfOk">' + esc(ok) + '</button></div>', { size: 'narrow', onClose: () => { if (!done) res(false); } });
+    m.querySelector('#cfOk').onclick = () => { done = true; closeModal(); res(true); };
+  });
+}
+function promptBox(title, value = '', label = '', multiline = false) {
+  return new Promise(res => {
+    let done = false;
+    const field = multiline ? '<textarea class="inp" id="pbIn" rows="4">' + esc(value) + '</textarea>' : '<input class="inp" id="pbIn" value="' + esc(value) + '">';
+    const m = openModal(mHead(title) + '<form id="pbF"><div class="mb"><label class="f">' + (label ? '<span>' + esc(label) + '</span>' : '') + field + '</label></div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">Lưu</button></div></form>', { size: 'narrow', onClose: () => { if (!done) res(null); } });
+    m.querySelector('#pbF').onsubmit = e => { e.preventDefault(); const v = m.querySelector('#pbIn').value.trim(); done = true; closeModal(); res(v || null); };
+  });
+}
+function choiceBox(title, msg, choices) {
+  return new Promise(res => {
+    let done = false;
+    const m = openModal(mHead(title) + '<div class="mb"><p style="margin:0">' + esc(msg) + '</p></div><div class="mf"><button class="btn" data-close>Huỷ</button>' + choices.map((c, i) => '<button class="btn ' + (c.cls || '') + '" data-ch="' + i + '">' + esc(c.label) + '</button>').join('') + '</div>', { size: 'narrow', onClose: () => { if (!done) res(null); } });
+    m.querySelectorAll('[data-ch]').forEach(b => b.onclick = () => { done = true; closeModal(); res(choices[+b.dataset.ch].value); });
+  });
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast('Đã copy.'); }
+  catch (e) {
+    const m = openModal(mHead('Copy thủ công') + '<div class="mb"><p class="muted small" style="margin-top:0">Trình duyệt chặn copy tự động. Hãy bôi đen toàn bộ và nhấn Ctrl+C (⌘+C).</p><textarea class="inp" rows="8" readonly>' + esc(text) + '</textarea></div><div class="mf"><button class="btn" data-close>Xong</button></div>');
+    const ta = m.querySelector('textarea'); setTimeout(() => { ta.focus(); ta.select(); }, 50);
+  }
+}
+
+/* ============ routing ============ */
+function go(view, extra = {}) {
+  Object.assign(S, { view }, extra); S.sideOpen = false;
+  let h = '';
+  if (view === 'overview') h = 'tong-quan';
+  else if (view === 'student' && S.sid) h = 'hs-' + S.sid;
+  else if (view === 'templates') h = 'mau-lo-trinh';
+  else if (view === 'help') h = 'huong-dan';
+  else if (view === 'weekly') h = 'tu-cua-tuan';
+  if (S.role === 'teacher' && h && location.hash !== '#' + h) { try { history.replaceState(null, '', '#' + h); } catch (e) { location.hash = h; } }
+  render(); window.scrollTo(0, 0);
+}
+function readHash() {
+  if (S.role !== 'teacher') return;
+  const h = (location.hash || '').slice(1);
+  if (h.startsWith('hs-') && S.data.students[h.slice(3)]) { S.view = 'student'; S.sid = h.slice(3); }
+  else if (h === 'mau-lo-trinh') S.view = 'templates';
+  else if (h === 'huong-dan') S.view = 'help';
+  else if (h === 'tu-cua-tuan') S.view = 'weekly';
+  else S.view = 'overview';
+}
+window.addEventListener('pagehide', () => { flushNote(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNote(); });
+window.addEventListener('hashchange', () => { readHash(); render(); });
+
+/* ============ render core (preserve focus + media) ============ */
+const mediaCache = {};
+function render() {
+  const root = $('#root');
+  const ae = document.activeElement; let keep = null;
+  if (ae && ae.dataset && ae.dataset.k && root.contains(ae)) keep = { k: ae.dataset.k, v: ae.value, s: ae.selectionStart, e: ae.selectionEnd };
+  const holder = $('#mediaHolder');
+  $$('[data-media-slot] > .player', root).forEach(p => holder.appendChild(p));
+  root.innerHTML = renderApp();
+  $$('[data-media-slot]', root).forEach(slot => {
+    const tid = slot.dataset.mediaSlot; const t = S.data.tasks[tid]; if (!t) return;
+    let p = mediaCache[tid];
+    if (!p || p.dataset.asset !== t.assetId) { p = buildPlayer(t); mediaCache[tid] = p; }
+    slot.appendChild(p);
+  });
+  if (keep) { const el = root.querySelector('[data-k="' + CSS.escape(keep.k) + '"]'); if (el) { el.value = keep.v; el.focus(); try { el.setSelectionRange(keep.s, keep.e); } catch (e) { } } }
+  $$('textarea[data-autosize]', root).forEach(autosize);
+  const nb = root.querySelector('.neditor textarea'); if (nb) { nb.style.height = 'auto'; nb.style.height = Math.max(nb.scrollHeight + 4, 360) + 'px'; }
+  paintNoteStatus();
+}
+function autosize(t) { t.style.height = 'auto'; t.style.height = Math.max(t.scrollHeight + 2, 200) + 'px'; }
+function loginView() {
+  const up = S.authMode === 'up';
+  return '<div class="card gate" style="text-align:left"><div class="logo" style="width:46px;height:46px;border-radius:12px;background:var(--accent);color:#fff;display:grid;place-items:center;margin:0 auto 12px">' + ICON.map + '</div><h2 style="text-align:center">' + (up ? 'Tạo tài khoản giáo viên' : 'Giáo viên đăng nhập') + '</h2>' +
+    (up ? '<p class="small muted" style="text-align:center">Chỉ tài khoản đầu tiên được tạo mới có quyền giáo viên.</p>' : '<p></p>') +
+    '<form data-form="login"><label class="f"><span>Email</span><input class="inp" type="email" name="email" required autocomplete="email"></label><label class="f"><span>Mật khẩu</span><input class="inp" type="password" name="password" required minlength="6" autocomplete="' + (up ? 'new-password' : 'current-password') + '"></label>' +
+    (S.authMsg ? '<div class="banner ' + (S.authOk ? 'info' : 'warn') + '">' + esc(S.authMsg) + '</div>' : '') +
+    '<button class="btn pri" style="width:100%;justify-content:center"' + (S.authBusy ? ' disabled' : '') + '>' + (S.authBusy ? 'Đang xử lý…' : up ? 'Tạo tài khoản' : 'Đăng nhập') + '</button></form>' +
+    '<div class="row" style="justify-content:space-between;margin-top:14px"><button class="btn ghost sm" data-act="toStudent">← Trang học sinh</button><button class="btn ghost sm" data-act="authMode">' + (up ? 'Đã có tài khoản? Đăng nhập' : 'Lần đầu dùng? Tạo tài khoản') + '</button></div></div>';
+}
+function studentLink(code) { return location.origin + location.pathname + '?ma=' + encodeURIComponent(code); }
+function renderApp() {
+  if (S.mode === 'login') return loginView();
+  if (S.mode === 'loading' || !firstLoadDone) return '<div class="empty" style="padding-top:20vh"><h3>Đang tải dữ liệu…</h3><p>' + (S.stale ? 'Chưa kết nối được kho dữ liệu, đang thử lại.' : 'Chờ một chút nhé.') + '</p></div>';
+  if (S.role === 'student') return renderPortal(null);
+  if (S.previewSid) return renderPortal(S.previewSid);
+  return renderTeacher();
+}
+
+/* ============ TEACHER ============ */
+function renderTeacher() {
+  const studs = activeStudents();
+  let main = '';
+  if (S.view === 'student' && getStudent(S.sid)) main = vStudent(getStudent(S.sid));
+  else if (S.view === 'templates') main = S.tplId && S.data.templates[S.tplId] ? vTemplateEdit() : vTemplates();
+  else if (S.view === 'help') main = vHelp();
+  else if (S.view === 'weekly') main = vWeekly();
+  else main = vOverview();
+  const banners = (S.banner ? '<div class="banner warn">' + esc(S.banner) + '</div>' : '') + (S.stale && S.mode === 'cloud' ? '<div class="banner warn">Chưa đồng bộ được dữ liệu mới nhất, đang thử kết nối lại…</div>' : '');
+  return '<div class="topbar"><button data-act="side">' + ICON.menu + '</button><b>Sổ Lộ Trình</b></div>' +
+    '<div class="app"><aside class="side ' + (S.sideOpen ? 'open' : '') + '">' +
+    '<div class="brand"><div class="logo">' + ICON.map + '</div><div><b>Sổ Lộ Trình</b><small>Quản lý học sinh gia sư</small></div></div>' +
+    navBtn('overview', 'Tổng quan', ICON.home) + navBtn('weekly', 'Từ của tuần', ICON.spark) + navBtn('templates', 'Mẫu lộ trình', ICON.book) + navBtn('help', 'Chia sẻ cho học sinh', ICON.share) +
+    '<div class="sec"><span>Học sinh (' + studs.length + ')</span><button data-act="addStudent">+ Thêm</button></div>' +
+    studs.map(s => '<button class="stu-link ' + (S.view === 'student' && S.sid === s.id ? 'on' : '') + '" data-act="openStudent" data-id="' + s.id + '"><span class="dot" style="background:' + esc(s.color) + '"></span><span class="nm">' + esc(s.name) + '</span><span class="pc">' + coverage(s).pct + '%</span></button>').join('') +
+    (studs.length ? '' : '<div class="small" style="padding:4px 10px;color:#a09b8d">Chưa có học sinh.</div>') +
+    '<div class="foot">' + (S.mode === 'cloud' ? '<button class="nav" data-act="logout" style="margin-bottom:8px;padding:6px 0">Đăng xuất</button>' : '') + '<span class="mode ' + (S.mode === 'local' ? 'local' : '') + '"><i></i>' + (S.mode === 'local' ? 'Chế độ thử (lưu trên máy)' : S.stale ? 'Mất kết nối, đang thử lại' : 'Đã đồng bộ') + '</span></div>' +
+    '</aside><main class="main">' + banners + main + '</main></div>';
+}
+function navBtn(v, label, icon) { return '<button class="nav ' + (S.view === v ? 'on' : '') + '" data-act="nav" data-v="' + v + '">' + icon + '<span>' + label + '</span></button>'; }
+function avatar(s, size = 36) { return '<span class="av" style="background:' + esc(s.color) + ';width:' + size + 'px;height:' + size + 'px">' + esc(initials(s.name)) + '</span>'; }
+function stackBar(cv) {
+  if (!cv.total) return '<div class="bar"></div>';
+  const w = i => (cv.c[i] / cv.total * 100).toFixed(1) + '%';
+  return '<div class="bar"><span class="b3" style="width:' + w(3) + '"></span><span class="b2" style="width:' + w(2) + '"></span><span class="b1" style="width:' + w(1) + '"></span></div>';
+}
+
+function vOverview() {
+  const studs = activeStudents(); const t0 = today(), wk = addDays(t0, -6);
+  let pending = [], overdue = [], sess7 = 0, upcoming = [];
+  studs.forEach(s => {
+    tasksOf(s.id).forEach(t => {
+      const st = taskState(t);
+      if (st === 'submitted') pending.push([s, t]);
+      if (st === 'overdue') overdue.push([s, t]);
+      if (st === 'assigned' && t.due && t.due <= addDays(t0, 3)) upcoming.push([s, t]);
+    });
+    sess7 += sessionsOf(s.id).filter(x => x.date >= wk && x.date <= t0).length;
+  });
+  const now = new Date();
+  let html = '<div class="head"><div><h1>Tổng quan</h1><div class="sub">' + WD[now.getDay()] + ', ' + fmtDate(t0) + '</div></div><div class="row"><button class="btn pri" data-act="addStudent">' + ICON.plus + 'Thêm học sinh</button></div></div>';
+  if (!studs.length) {
+    return html + '<div class="card"><div class="empty"><h3>Bắt đầu với học sinh đầu tiên</h3><p>Thêm học sinh, thiết kế lộ trình riêng (hoặc dùng mẫu), rồi giao bài dictation và ghi lại từng buổi học.</p><div class="row" style="justify-content:center;margin-top:14px"><button class="btn pri" data-act="addStudent">' + ICON.plus + 'Thêm học sinh</button>' + (Object.keys(S.data.templates).length ? '' : '<button class="btn" data-act="seedTpl">Tạo mẫu lộ trình gợi ý</button>') + '</div></div></div>';
+  }
+  html += '<div class="kpis">' +
+    kpi(studs.length, 'Học sinh đang học') + kpi(pending.length, 'Bài chờ chấm', pending.length > 0) +
+    kpi(overdue.length, 'Bài quá hạn', overdue.length > 0) + kpi(sess7, 'Buổi học 7 ngày qua') + '</div>';
+  const attention = pending.map(x => [x, 'submitted']).concat(overdue.map(x => [x, 'overdue']), upcoming.map(x => [x, 'soon']));
+  html += '<div class="grid2"><div><h2 style="margin-bottom:12px">Học sinh</h2><div class="sgrid">' + studs.map(sCard).join('') + '</div></div>' +
+    '<div><h2 style="margin-bottom:12px">Cần xử lý</h2><div class="card pad">' +
+    (attention.length ? attention.slice(0, 12).map(([[s, t], k]) =>
+      '<div class="list-item">' + avatar(s, 30) + '<div class="grow" style="min-width:0"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(t.title) + '</div><div class="small muted">' + esc(s.name) + (t.due ? ' · hạn ' + fmtDateShort(t.due) : '') + '</div></div>' +
+      (k === 'submitted' ? '<button class="btn sm teal" data-act="review" data-id="' + t.id + '">Chấm</button>' : k === 'overdue' ? '<span class="tag red">Quá hạn</span>' : '<span class="tag">Sắp đến hạn</span>') + '</div>').join('')
+      : '<div class="empty" style="padding:24px 10px">Không có gì cần xử lý. Tuyệt!</div>') +
+    '</div></div></div>';
+  return html;
+}
+function kpi(n, l, warn) { return '<div class="card kpi ' + (warn ? 'warn' : '') + '"><div class="n">' + n + '</div><div class="l">' + l + '</div></div>'; }
+function sCard(s) {
+  const cv = coverage(s), ts = tasksOf(s.id), open = ts.filter(t => ['assigned', 'overdue'].includes(taskState(t))).length;
+  const avg = avgDictation(s.id), ls = lastSession(s.id);
+  return '<button class="card scard" data-act="openStudent" data-id="' + s.id + '"><div class="top">' + avatar(s) + '<div style="min-width:0"><div style="font-weight:600">' + esc(s.name) + '</div><div class="meta">' + esc(s.level || 'Chưa ghi trình độ') + '</div></div></div>' +
+    '<div class="row" style="justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span class="muted">Kiến thức đã cover</span><b>' + cv.pct + '%</b></div>' + stackBar(cv) +
+    '<div class="skmini">' + SKILLS.map(k => { const g = skillStats(s, k.k); return '<span style="color:' + k.color + ';font-weight:600">' + k.short + '</span><div class="bar"><span style="width:' + g.pct + '%;background:' + k.color + '"></span></div><b>' + (g.total ? g.pct + '%' : '–') + '</b>'; }).join('') + '</div>' +
+    '<div class="stats"><span><b>' + open + '</b> bài chưa nộp</span><span>Dictation TB <b>' + (avg == null ? '–' : avg + '%') + '</b></span><span>Buổi gần nhất <b>' + (ls ? fmtDateShort(ls) : '–') + '</b></span></div></button>';
+}
+
+/* ---- student detail ---- */
+function vStudent(s) {
+  const ts = tasksOf(s.id), pend = ts.filter(t => taskState(t) === 'submitted').length;
+  const tabs = [['roadmap', 'Lộ trình'], ['tasks', 'Bài tập & Dictation', pend], ['sessions', 'Buổi học'], ['knowledge', 'Kiến thức đã cover'], ['notes', 'Ghi chú của HS', 0]];
+  let body = '';
+  if (S.tab === 'tasks') body = tTasks(s, ts);
+  else if (S.tab === 'sessions') body = tSessions(s);
+  else if (S.tab === 'knowledge') body = tKnowledge(s);
+  else if (S.tab === 'notes') body = tNotes(s);
+  else body = tRoadmap(s);
+  return '<div class="head"><div class="row" style="gap:14px;align-items:center">' + avatar(s, 52) + '<div><h1>' + esc(s.name) + '</h1><div class="sub">' + esc(s.level || '') + (s.level && s.goal ? ' · ' : '') + esc(s.goal || '') + '</div>' +
+    '<div class="row small" style="margin-top:6px"><span class="muted">Mã học sinh:</span><span class="code">' + esc(s.code) + '</span><button class="ib" title="Copy mã" data-act="copyCode" data-id="' + s.id + '">' + ICON.copy + '</button><button class="btn sm" data-act="copyLink" data-id="' + s.id + '">' + ICON.share + 'Copy link cho em</button></div></div></div>' +
+    '<div class="row"><button class="btn" data-act="preview" data-id="' + s.id + '">' + ICON.eye + 'Xem trang học sinh</button><button class="btn" data-act="editStudent" data-id="' + s.id + '">' + ICON.edit + 'Sửa</button><button class="btn ghost danger" data-act="delStudent" data-id="' + s.id + '">' + ICON.trash + '</button></div></div>' +
+    (s.note ? '<div class="banner info pre">' + esc(s.note) + '</div>' : '') +
+    '<div class="tabs">' + tabs.map(([k, l, c]) => '<button class="tab ' + (S.tab === k ? 'on' : '') + '" data-act="tab" data-v="' + k + '">' + l + (c ? '<span class="cnt">' + c + '</span>' : '') + '</button>').join('') + '</div>' + body;
+}
+
+/* roadmap editor (students + templates) */
+function ownerDoc(col, id) { return col === 'students' ? getStudent(id) : (S.data.templates[id] ? Object.assign({ id }, S.data.templates[id]) : null); }
+async function saveModules(col, id, mutator) {
+  const d = clone(col === 'students' ? S.data.students[id] : S.data.templates[id]); if (!d) return;
+  d.modules = d.modules || []; mutator(d.modules, d);
+  await saveDoc(col, id, d);
+}
+function planText(mid) { const p = (S.data.plans || {})[mid]; return p ? p.text || '' : ''; }
+function mdLite(src) {
+  const inline = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  const out = []; let ul = false;
+  String(src || '').split(/\r?\n/).forEach(line => {
+    const l = line.trim();
+    if (/^[-•]\s+/.test(l)) { if (!ul) { out.push('<ul>'); ul = true; } out.push('<li>' + inline(l.replace(/^[-•]\s+/, '')) + '</li>'); return; }
+    if (ul) { out.push('</ul>'); ul = false; }
+    if (!l) return;
+    if (l.startsWith('### ')) out.push('<h5>' + inline(l.slice(4)) + '</h5>');
+    else if (l.startsWith('## ')) out.push('<h4>' + inline(l.slice(3)) + '</h4>');
+    else out.push('<p>' + inline(l) + '</p>');
+  });
+  if (ul) out.push('</ul>');
+  return out.join('');
+}
+async function copyPlans(fromMods, toMods, owner) {
+  for (let i = 0; i < Math.min(fromMods.length, toMods.length); i++) {
+    const t = planText(fromMods[i].id);
+    if (t) await saveDoc('plans', toMods[i].id, { owner, text: t, updatedAt: new Date().toISOString() });
+  }
+}
+function planModal(col, id, mid) {
+  const m = (ownerDoc(col, id).modules || []).find(x => x.id === mid);
+  const mm = openModal(mHead('Giáo án · ' + m.title) + '<form id="plf"><div class="mb"><div class="banner warn" style="margin-bottom:12px">' + ICON.lock + ' Chỉ giáo viên thấy. Học sinh không bao giờ nhận được nội dung này.</div>' +
+    '<textarea class="inp" name="text" rows="18" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px" placeholder="## Tuần 1\n### Buổi 1 (60 phút)\n- Hoạt động…">' + esc(planText(mid)) + '</textarea>' +
+    '<small class="muted">Định dạng: <code>## Tiêu đề</code>, <code>### Tiêu đề nhỏ</code>, <code>- gạch đầu dòng</code>, <code>**in đậm**</code>.</small></div>' +
+    '<div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">Lưu giáo án</button></div></form>', { size: 'wide', sticky: true });
+  mm.querySelector('#plf').onsubmit = async e => {
+    e.preventDefault(); const text = String(new FormData(e.target).get('text') || '').trim(); closeModal();
+    if (text) await saveDoc('plans', mid, { owner: col + '/' + id, text, updatedAt: new Date().toISOString() });
+    else if ((S.data.plans || {})[mid]) await delDoc('plans', mid);
+    S.openPlans[mid] = !!text; render();
+  };
+}
+function roadmapEditor(col, id, modules, withStatus) {
+  const taskCount = {};
+  if (withStatus) tasksOf(id).forEach(t => (t.topicIds || []).forEach(x => taskCount[x] = (taskCount[x] || 0) + 1));
+  const sf = S.skillFilter || 'all';
+  const idxOf = {}; modules.forEach((m, i) => idxOf[m.id] = i);
+  const allMods = modules;
+  if (modules.length) modules = modules.filter(m => sf === 'all' || (sf === 'none' ? !SKILL_KEYS.includes(m.skill) : m.skill === sf));
+  const addBtn = '<button class="btn" data-act="addModule" data-col="' + col + '" data-id="' + id + '">' + ICON.plus + 'Thêm chương' + (skillOf(sf) ? ' ' + skillOf(sf).short : '') + '</button>';
+  if (allMods.length && !modules.length) return '<div class="card"><div class="empty"><h3>Chưa có chương nào cho kỹ năng này</h3><div style="margin-top:12px">' + addBtn + '</div></div></div>';
+  if (!modules.length) return '<div class="card"><div class="empty"><h3>Lộ trình còn trống</h3><p>Thêm chương đầu tiên, hoặc áp dụng một mẫu lộ trình có sẵn.</p><div class="row" style="justify-content:center;margin-top:12px"><button class="btn pri" data-act="addModule" data-col="' + col + '" data-id="' + id + '">' + ICON.plus + 'Thêm chương</button>' + (withStatus ? '<button class="btn" data-act="applyTpl" data-id="' + id + '">Áp dụng mẫu</button>' : '') + '</div></div></div>';
+  return modules.map(m => {
+    const mi = idxOf[m.id];
+    const ts = m.topics || []; const done = ts.filter(t => (t.status || 0) >= 2).length;
+    const cv = { total: ts.length, c: [0, 0, 0, 0] }; ts.forEach(t => cv.c[t.status || 0]++);
+    const A = 'data-col="' + col + '" data-id="' + id + '" data-m="' + m.id + '"';
+    return '<div class="card mod"><div class="mod-h"><span class="idx">' + (mi + 1) + '</span><h3>' + esc(m.title) + '</h3>' +
+      '<select class="sksel" style="' + skVars(m.skill) + '" data-chg="modSkill" ' + A + '>' + (SKILL_KEYS.includes(m.skill) ? '' : '<option value="">Chọn kỹ năng…</option>') + SKILLS.map(x => '<option value="' + x.k + '"' + (m.skill === x.k ? ' selected' : '') + '>' + x.label + '</option>').join('') + '</select>' +
+      (withStatus ? '<span class="prog">' + done + '/' + ts.length + ' đã cover</span><div class="minibar">' + stackBar(cv) + '</div>' : '<span class="prog">' + ts.length + ' chủ đề</span>') +
+      '<button class="btn sm' + (S.openPlans[m.id] ? ' plan-on' : '') + '" title="Giáo án (chỉ giáo viên thấy)" data-act="togglePlan" ' + A + '>' + ICON.lock + (planText(m.id) ? 'Giáo án' : 'Thêm giáo án') + '</button>' +
+      '<span class="acts"><button class="ib" title="Lên" data-act="modUp" ' + A + '>' + ICON.up + '</button><button class="ib" title="Xuống" data-act="modDown" ' + A + '>' + ICON.down + '</button><button class="ib" title="Đổi tên" data-act="modRename" ' + A + '>' + ICON.edit + '</button><button class="ib del" title="Xoá chương" data-act="modDel" ' + A + '>' + ICON.trash + '</button></span></div>' +
+      (S.openPlans[m.id] ? '<div class="plan"><div class="ph"><span class="lk">' + ICON.lock + ' Chỉ giáo viên thấy</span><span class="grow"></span><button class="btn sm" data-act="editPlan" ' + A + '>' + ICON.edit + 'Sửa giáo án</button></div>' +
+        (planText(m.id) ? '<div class="pb">' + mdLite(planText(m.id)) + '</div>' : '<div class="muted small">Chưa có giáo án cho chương này. Bấm “Sửa giáo án” để viết: mục tiêu, hoạt động từng buổi, bài về nhà, tiêu chí đánh giá.</div>') + '</div>' : '') +
+      ts.map(t => {
+        const st = t.status || 0; const B = A + ' data-t="' + t.id + '"';
+        return '<div class="topic">' + (withStatus ? '<span class="chk ' + STATUS[st].cls + '">' + (st >= 2 ? ICON.check : st === 1 ? ICON.half : '') + '</span>' : '<span class="muted small">•</span>') +
+          '<div class="ti">' + esc(t.title) + (withStatus && (t.coveredAt || taskCount[t.id]) ? '<div class="when">' + (t.coveredAt ? 'Cover ngày ' + fmtDate(t.coveredAt) : '') + (t.coveredAt && taskCount[t.id] ? ' · ' : '') + (taskCount[t.id] ? taskCount[t.id] + ' bài tập' : '') + '</div>' : '') + '</div>' +
+          (withStatus ? '<select class="st ' + STATUS[st].cls + '" data-chg="topicStatus" ' + B + '>' + STATUS.map(x => '<option value="' + x.v + '"' + (x.v === st ? ' selected' : '') + '>' + x.label + '</option>').join('') + '</select>' : '') +
+          '<span class="acts"><button class="ib" title="Lên" data-act="tUp" ' + B + '>' + ICON.up + '</button><button class="ib" title="Xuống" data-act="tDown" ' + B + '>' + ICON.down + '</button><button class="ib" title="Đổi tên" data-act="tRename" ' + B + '>' + ICON.edit + '</button><button class="ib del" title="Xoá" data-act="tDel" ' + B + '>' + ICON.x + '</button></span></div>';
+      }).join('') +
+      '<form class="addrow" data-form="addTopic" ' + A + '><input data-k="add-' + m.id + '" placeholder="Thêm chủ đề / kiến thức… (dán nhiều dòng để thêm nhiều)"><button class="btn sm">' + ICON.plus + 'Thêm</button></form></div>';
+  }).join('') + addBtn;
+}
+function skillPills(modules) {
+  const sf = S.skillFilter || 'all';
+  const n = k => modules.filter(m => k === 'none' ? !SKILL_KEYS.includes(m.skill) : m.skill === k).length;
+  const items = [['all', 'Tất cả (' + modules.length + ')']].concat(SKILLS.map(x => [x.k, x.short + ' (' + n(x.k) + ')'])).concat(n('none') ? [['none', 'Chưa gắn (' + n('none') + ')']] : []);
+  return '<div class="filters">' + items.map(([k, l]) => '<button class="pill ' + (sf === k ? 'on' : '') + '" data-act="skfilter" data-v="' + k + '"' + (skillOf(k) && sf !== k ? ' style="color:' + skillOf(k).color + '"' : '') + '>' + l + '</button>').join('') + '</div>';
+}
+function tRoadmap(s) {
+  const cv = coverage(s);
+  return '<div class="row" style="margin-bottom:16px"><div class="grow" style="min-width:200px"><div class="row small" style="justify-content:space-between;margin-bottom:5px"><span class="muted">Tiến độ lộ trình · ' + cv.total + ' chủ đề</span><b>' + cv.pct + '% đã cover</b></div>' + stackBar(cv) + '</div>' +
+    '<button class="btn" data-act="applyTpl" data-id="' + s.id + '">Áp dụng mẫu</button><button class="btn" data-act="saveAsTpl" data-id="' + s.id + '">Lưu thành mẫu</button></div>' +
+    '<div class="legend2">' + STATUS.map(x => '<span><i style="background:var(--' + x.cls + ')"></i>' + x.label + '</span>').join('') + '</div>' +
+    skillPills(s.modules || []) +
+    roadmapEditor('students', s.id, s.modules || [], true);
+}
+
+/* tasks tab */
+function tTasks(s, ts) {
+  const f = S.taskFilter;
+  const filt = ts.filter(t => { const st = taskState(t); return f === 'all' || (f === 'open' && (st === 'assigned' || st === 'overdue')) || (f === 'submitted' && st === 'submitted') || (f === 'reviewed' && st === 'reviewed'); });
+  const cnt = k => ts.filter(t => { const st = taskState(t); return k === 'open' ? (st === 'assigned' || st === 'overdue') : st === k; }).length;
+  const tm = topicMap(s);
+  return '<div class="row" style="margin-bottom:12px"><div class="filters grow" style="margin:0">' +
+    [['all', 'Tất cả (' + ts.length + ')'], ['open', 'Chưa nộp (' + cnt('open') + ')'], ['submitted', 'Chờ chấm (' + cnt('submitted') + ')'], ['reviewed', 'Đã chấm (' + cnt('reviewed') + ')']].map(([k, l]) => '<button class="pill ' + (f === k ? 'on' : '') + '" data-act="tfilter" data-v="' + k + '">' + l + '</button>').join('') +
+    '</div><button class="btn pri" data-act="newTask" data-id="' + s.id + '">' + ICON.plus + 'Giao bài mới</button></div>' +
+    '<div class="card">' + (filt.length ? filt.map(t => taskRow(t, tm)).join('') : '<div class="empty"><h3>' + (ts.length ? 'Không có bài nào ở mục này' : 'Chưa giao bài nào') + '</h3><p>Giao bài dictation (kèm video/audio và đáp án để chấm tự động) hoặc bài tập thường.</p></div>') + '</div>';
+}
+function taskRow(t, tm) {
+  const st = taskState(t), sc = taskScore(t), d = t.type === 'dictation';
+  return '<div class="task"><div class="ticon ' + (d ? 'd' : 't') + '">' + (d ? ICON.head : ICON.doc) + '</div><div class="body"><div class="ttl">' + esc(t.title) + '</div>' +
+    '<div class="small muted">' + (d ? 'Dictation' : 'Bài tập') + ' · giao ' + fmtDateShort(t.createdAt) + (t.due ? ' · hạn ' + fmtDate(t.due) : '') + (t.assetId ? ' · có file nghe' : t.videoUrl ? ' · có link video' : '') + '</div>' +
+    '<div class="chips">' + STATE_TAG[st] + (t.topicIds || []).filter(x => tm[x]).map(x => '<span class="tag teal">' + esc(tm[x].title) + '</span>').join('') + '</div></div>' +
+    (sc != null ? '<div class="score ' + scoreCls(sc) + '">' + sc + '%</div>' : '') +
+    '<div class="row" style="gap:2px"><button class="btn sm ' + (st === 'submitted' ? 'teal' : '') + '" data-act="review" data-id="' + t.id + '">' + (st === 'submitted' ? 'Chấm bài' : st === 'reviewed' ? 'Xem' : 'Nhập bài làm') + '</button>' +
+    '<button class="ib" title="Sửa" data-act="editTask" data-id="' + t.id + '">' + ICON.edit + '</button><button class="ib del" title="Xoá" data-act="delTask" data-id="' + t.id + '">' + ICON.trash + '</button></div></div>';
+}
+
+/* sessions tab */
+function tSessions(s) {
+  const ss = sessionsOf(s.id), tm = topicMap(s);
+  return '<div class="row" style="margin-bottom:12px"><div class="grow muted">Ghi lại nội dung từng buổi. Chủ đề được chọn sẽ tự chuyển sang “Đã cover”.</div><button class="btn pri" data-act="newSession" data-id="' + s.id + '">' + ICON.plus + 'Ghi buổi học</button></div>' +
+    '<div class="card">' + (ss.length ? ss.map(x => '<div class="sess"><div class="d">' + fmtDateShort(x.date) + '<small>' + weekday(x.date) + ', ' + String(x.date).slice(0, 4) + '</small></div><div><div class="chips row" style="gap:5px;margin-bottom:6px">' +
+      ((x.topicIds || []).filter(i => tm[i]).map(i => '<span class="tag s2">' + esc(tm[i].title) + '</span>').join('') || '<span class="small muted">Không gắn chủ đề</span>') + '</div>' +
+      (x.note ? '<div class="pre">' + esc(x.note) + '</div>' : '') + (x.homework ? '<div class="small" style="margin-top:6px"><b>Bài về nhà:</b> <span class="pre">' + esc(x.homework) + '</span></div>' : '') +
+      '</div><div class="row" style="gap:0;align-self:start"><button class="ib" data-act="editSession" data-id="' + x.id + '">' + ICON.edit + '</button><button class="ib del" data-act="delSession" data-id="' + x.id + '">' + ICON.trash + '</button></div></div>').join('')
+      : '<div class="empty"><h3>Chưa có buổi học nào</h3><p>Sau mỗi buổi, ghi lại những gì đã dạy để theo dõi kiến thức đã cover.</p></div>') + '</div>';
+}
+
+/* knowledge tab */
+function ring(pct) {
+  const r = 52, c = 2 * Math.PI * r;
+  return '<div class="ring"><svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="' + r + '" fill="none" stroke="var(--line2)" stroke-width="12"/><circle cx="60" cy="60" r="' + r + '" fill="none" stroke="var(--s2)" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + (c * pct / 100).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 60 60)"/></svg><div class="c"><div><b>' + pct + '%</b><span class="small muted">đã cover</span></div></div></div>';
+}
+function spark(points) {
+  if (points.length < 2) return '<div class="small muted">Cần ít nhất 2 bài dictation có điểm để vẽ biểu đồ.</div>';
+  const W = 460, H = 120, P = 22, n = points.length;
+  const x = i => P + i * (W - 2 * P) / (n - 1), y = v => H - P - v / 100 * (H - 2 * P);
+  const line = points.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.v).toFixed(1)).join(' ');
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" style="max-width:100%">' +
+    [0, 50, 100].map(v => '<line x1="' + P + '" x2="' + (W - P) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="var(--line2)"/><text x="0" y="' + (y(v) + 4) + '" font-size="10" fill="#999">' + v + '</text>').join('') +
+    '<path d="' + line + '" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linejoin="round"/>' +
+    points.map((p, i) => '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="4" fill="var(--panel)" stroke="var(--teal)" stroke-width="2"><title>' + esc(p.t) + ': ' + p.v + '%</title></circle>').join('') + '</svg>';
+}
+function skillCard(g) {
+  return '<div class="card skc" style="' + skVars(g.k) + '"><div class="nm">' + esc(g.label) + '</div><div class="pc">' + (g.total ? g.pct + '%' : '–') + '</div>' + stackBar(g) +
+    '<div class="small muted" style="margin-top:8px">' + (g.total ? (g.c[2] + g.c[3]) + '/' + g.total + ' chủ đề đã cover' + (g.c[1] ? ' · ' + g.c[1] + ' đang học' : '') : 'Chưa có chủ đề') + '</div></div>';
+}
+function skillDetail(s, g, teacher) {
+  const mods = (s.modules || []).filter(m => g.k === '' ? !SKILL_KEYS.includes(m.skill) : m.skill === g.k);
+  const cov = g.ts.filter(t => (t.status || 0) >= 2).sort((a, b) => (b.coveredAt || '').localeCompare(a.coveredAt || ''));
+  const learning = g.ts.filter(t => t.status === 1);
+  let h = '<div class="card pad" style="' + skVars(g.k) + '"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h3 style="color:var(--skc)">' + esc(g.label) + '</h3><b>' + (g.total ? g.pct + '%' : '') + '</b></div>';
+  if (!g.total) return h + '<div class="muted small">Chưa có chủ đề nào cho kỹ năng này trong lộ trình.</div>' + (teacher ? '<button class="btn sm" style="margin-top:10px" data-act="addModuleSkill" data-id="' + s.id + '" data-v="' + g.k + '">' + ICON.plus + 'Thêm chương ' + esc(g.short || '') + '</button>' : '') + '</div>';
+  if (teacher && mods.length > 1) h += mods.map(m => { const c = { total: (m.topics || []).length, c: [0, 0, 0, 0] }; (m.topics || []).forEach(t => c.c[t.status || 0]++); const p = c.total ? Math.round((c.c[2] + c.c[3]) / c.total * 100) : 0; return '<div class="mbar"><div class="t"><span>' + esc(m.title) + '</span><b>' + p + '%</b></div>' + stackBar(c) + '</div>'; }).join('');
+  h += '<div class="small muted" style="font-weight:600;margin:6px 0 2px">Đã cover (' + cov.length + ')</div>' +
+    (cov.length ? cov.map(t => '<div class="list-item" style="padding:6px 0"><span class="chk ' + STATUS[t.status].cls + '">' + ICON.check + '</span><div class="grow">' + esc(t.title) + (mods.length > 1 ? '<div class="small muted">' + esc(t.mtitle) + '</div>' : '') + '</div><span class="small muted">' + (t.status === 3 ? '<span class="tag s3" style="margin-right:6px">Thành thạo</span>' : '') + fmtDate(t.coveredAt) + '</span></div>').join('') : '<div class="small muted" style="padding:6px 0">Chưa có.</div>');
+  if (learning.length) h += '<div class="small muted" style="font-weight:600;margin:10px 0 6px">Đang học (' + learning.length + ')</div>' + learning.map(t => '<span class="tag s1" style="margin:0 4px 4px 0">' + esc(t.title) + '</span>').join('');
+  return h + '</div>';
+}
+function skillGroups(s) {
+  const main = SKILLS.map(x => Object.assign({}, x, skillStats(s, x.k)));
+  const other = Object.assign({ k: '', label: 'Chưa gắn kỹ năng', short: '' }, skillStats(s, ''));
+  return { main, other };
+}
+function tKnowledge(s) {
+  const cv = coverage(s), G = skillGroups(s);
+  const dict = tasksOf(s.id).filter(t => t.type === 'dictation' && taskScore(t) != null).map(t => ({ t: t.title, v: taskScore(t), at: (S.data.subs[t.id] || {}).submittedAt || t.createdAt })).sort((a, b) => (a.at || '').localeCompare(b.at || ''));
+  return '<div class="skgrid">' + G.main.map(skillCard).join('') + '</div>' +
+    '<div class="kgrid" style="margin-top:18px">' + G.main.map(g => skillDetail(s, g, true)).join('') + (G.other.total ? skillDetail(s, G.other, true) : '') + '</div>' +
+    '<div class="kgrid" style="margin-top:18px"><div class="card pad"><h3 style="margin-bottom:12px">Tổng cả lộ trình</h3><div class="row" style="gap:20px;align-items:center">' + ring(cv.pct) +
+    '<div class="grow">' + STATUS.slice().reverse().map(x => '<div class="row small" style="justify-content:space-between;padding:3px 0"><span><span class="tag ' + x.cls + '">' + x.label + '</span></span><b>' + cv.c[x.v] + '</b></div>').join('') + '</div></div></div>' +
+    '<div class="card pad"><h3 style="margin-bottom:8px">Listening · điểm dictation theo thời gian</h3>' + spark(dict) + '</div></div>' +
+    (G.other.total ? '<p class="small muted">Có ' + G.other.total + ' chủ đề thuộc chương chưa gắn kỹ năng. Vào tab Lộ trình, chọn kỹ năng ở đầu mỗi chương.</p>' : '');
+}
+
+/* templates */
+function vTemplates() {
+  const tpls = Object.entries(S.data.templates).map(([id, t]) => Object.assign({ id }, t)).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  return '<div class="head"><div><h1>Mẫu lộ trình</h1><div class="sub">Thiết kế một lần, áp dụng cho nhiều học sinh rồi chỉnh riêng cho từng em.</div></div><div class="row">' +
+'<button class="btn" data-act="seedTpl">Thêm mẫu IELTS gợi ý</button>' + '<button class="btn pri" data-act="newTpl">' + ICON.plus + 'Mẫu mới</button></div></div>' +
+    (tpls.length ? '<div class="sgrid">' + tpls.map(t => { const n = (t.modules || []).reduce((a, m) => a + (m.topics || []).length, 0); return '<div class="card pad"><h3>' + esc(t.name) + '</h3><div class="small muted" style="margin:4px 0 12px">' + (t.modules || []).length + ' chương · ' + n + ' chủ đề</div><div class="row"><button class="btn sm" data-act="openTpl" data-id="' + t.id + '">' + ICON.edit + 'Chỉnh sửa</button><button class="ib del" data-act="delTpl" data-id="' + t.id + '">' + ICON.trash + '</button></div></div>'; }).join('') + '</div>'
+      : '<div class="card"><div class="empty"><h3>Chưa có mẫu nào</h3><p>Tạo mẫu mới, hoặc mở lộ trình của một học sinh và bấm “Lưu thành mẫu”.</p></div></div>');
+}
+function vTemplateEdit() {
+  const t = Object.assign({ id: S.tplId }, S.data.templates[S.tplId]);
+  return '<div class="head"><div><button class="btn ghost sm" data-act="nav" data-v="templates">← Tất cả mẫu</button><h1 style="margin-top:6px">' + esc(t.name) + '</h1><div class="sub">Mẫu lộ trình</div></div><div class="row"><button class="btn" data-act="renameTpl" data-id="' + t.id + '">' + ICON.edit + 'Đổi tên</button></div></div>' +
+    skillPills(t.modules || []) + roadmapEditor('templates', t.id, t.modules || [], false);
+}
+
+/* help */
+function vHelp() {
+  const studs = activeStudents();
+  return '<div class="head"><div><h1>Chia sẻ cho học sinh</h1><div class="sub">Học sinh không cần tài khoản: mở link riêng là vào đúng trang của mình.</div></div></div>' +
+    '<div class="grid2"><div class="card pad"><ol class="steps">' +
+    '<li><b>Gửi link riêng cho từng em.</b><br><span class="muted">Bấm “Copy link” bên cạnh tên em rồi gửi qua Zalo/Messenger. Link đã chứa sẵn mã của em. Hoặc gửi link trang chủ kèm mã 6 ký tự để em tự nhập.</span></li>' +
+    '<li><b>Em mở link là vào học.</b><br><span class="muted">Trình duyệt nhớ mã, lần sau em chỉ cần mở trang. Em xem lộ trình, bài tập, ghi chú và kiến thức đã học.</span></li>' +
+    '<li><b>Làm dictation, nộp bài, ghi chú.</b><br><span class="muted">Em nghe, gõ, bấm “Chấm bài” rồi “Nộp cho giáo viên”. Bài nộp và ghi chú tự lưu lên đây. Phím tắt khi gõ: <span class="kbd">Tab</span> phát/dừng, <span class="kbd">Shift+Tab</span> tua lại 3 giây.</span></li>' +
+    '<li><b>Giữ mã như mật khẩu.</b><br><span class="muted">Ai có mã của em sẽ xem và nộp bài thay em được. Nếu lộ mã, bấm “Đổi mã” rồi gửi link mới cho em.</span></li>' +
+    '</ol></div><div class="card pad"><h3 style="margin-bottom:10px">Link của học sinh</h3>' +
+    (studs.length ? studs.map(s => '<div class="list-item">' + avatar(s, 30) + '<div class="grow">' + esc(s.name) + '</div><span class="code">' + esc(s.code) + '</span><button class="btn sm" data-act="copyLink" data-id="' + s.id + '">' + ICON.copy + 'Copy link</button><button class="btn ghost sm" data-act="regenCode" data-id="' + s.id + '">Đổi mã</button></div>').join('') : '<div class="muted">Chưa có học sinh.</div>') +
+    '</div></div>';
+}
+
+/* ============ STUDENT PORTAL ============ */
+function renderPortal(previewSid) {
+  let s = null;
+  if (previewSid) s = getStudent(previewSid);
+  else if (S.studentCode) { const e = studentList().find(x => !x.archived && x.code === S.studentCode); if (e) s = e; }
+  const pv = previewSid ? '<div class="banner info" style="justify-content:space-between"><span>' + ICON.eye + ' Bạn đang xem trang như học sinh <b>' + esc(s ? s.name : '') + '</b> sẽ thấy.</span><button class="btn sm" data-act="exitPreview">Thoát xem thử</button></div>' : '';
+  if (!s) {
+    if (!previewSid && S.studentCode && (S.bundleLoading || !S.bundleChecked) && !S.stale) return '<div class="empty" style="padding-top:20vh"><h3>Đang mở trang của em…</h3></div>';
+    const wrong = S.studentCode && !previewSid && S.bundleChecked;
+    return '<div class="card gate"><div class="logo" style="width:46px;height:46px;border-radius:12px;background:var(--accent);color:#fff;display:grid;place-items:center;margin:0 auto 12px">' + ICON.map + '</div><h2>Trang học tập của em</h2><p class="muted">Nhập mã 6 ký tự mà giáo viên đã gửi.</p>' +
+      '<form data-form="code"><input class="inp code-in" maxlength="6" name="code" autocomplete="off" placeholder="______" value="' + esc(wrong ? S.studentCode : '') + '">' + (wrong ? '<div class="small" style="color:var(--danger);margin:-6px 0 10px">Mã chưa đúng, em kiểm tra lại nhé.</div>' : '') +
+      '<button class="btn pri" style="width:100%;justify-content:center">Vào học</button></form>' + (S.stale ? '<p class="small muted">Chưa kết nối được máy chủ, em thử lại sau.</p>' : '') + (S.role === 'student' ? '<p style="margin:18px 0 0"><button class="btn ghost sm" data-act="toLogin">Giáo viên đăng nhập</button></p>' : '') + '</div>';
+  }
+  const ts = tasksOf(s.id);
+  if (S.openTask && S.data.tasks[S.openTask] && S.data.tasks[S.openTask].studentId === s.id) return '<div class="portal">' + pv + workspace(s, Object.assign({ id: S.openTask }, S.data.tasks[S.openTask])) + '</div>';
+  const cv = coverage(s);
+  const todo = ts.filter(t => ['assigned', 'overdue'].includes(taskState(t))).sort((a, b) => (a.due || '9').localeCompare(b.due || '9'));
+  const done = ts.filter(t => !['assigned', 'overdue'].includes(taskState(t)));
+  let body = '';
+  if (S.pTab === 'weekly') {
+    body = weeklyTab();
+  } else if (S.pTab === 'notes') {
+    body = notesView(s, !!previewSid);
+  } else if (S.pTab === 'roadmap') {
+    body = (s.modules || []).length ? (s.modules || []).map((m, i) => '<div class="card mod"><div class="mod-h"><span class="idx">' + (i + 1) + '</span><h3>' + esc(m.title) + '</h3>' + (SKILL_KEYS.includes(m.skill) ? skChip(m.skill) : '') + '</div>' + (m.topics || []).map(t => { const st = t.status || 0; return '<div class="topic"><span class="chk ' + STATUS[st].cls + '">' + (st >= 2 ? ICON.check : st === 1 ? ICON.half : '') + '</span><div class="ti">' + esc(t.title) + '</div><span class="tag ' + STATUS[st].cls + '">' + STATUS[st].label + '</span></div>'; }).join('') + '</div>').join('') : '<div class="card"><div class="empty">Giáo viên chưa thiết kế lộ trình.</div></div>';
+  } else if (S.pTab === 'learned') {
+    const ss = sessionsOf(s.id); const tm = topicMap(s); const G = skillGroups(s);
+    body = '<div class="skgrid">' + G.main.map(skillCard).join('') + '</div><div class="kgrid" style="margin-top:18px">' + G.main.filter(g => g.total).map(g => skillDetail(s, g, false)).join('') + (G.other.total ? skillDetail(s, G.other, false) : '') + '</div>' +
+      '<div class="card pad" style="margin-top:18px"><h3 style="margin-bottom:10px">Các buổi học</h3>' + (ss.length ? ss.slice(0, 20).map(x => '<div class="list-item" style="align-items:flex-start"><b style="min-width:52px">' + fmtDateShort(x.date) + '</b><div class="grow"><div class="row" style="gap:4px">' + (x.topicIds || []).filter(i => tm[i]).map(i => '<span class="tag s2">' + esc(tm[i].title) + '</span>').join('') + '</div>' + (x.homework ? '<div class="small" style="margin-top:4px"><b>Bài về nhà:</b> ' + esc(x.homework) + '</div>' : '') + '</div></div>').join('') : '<div class="muted">Chưa có.</div>') + '</div>';
+  } else {
+    body = weeklyHero() + '<h3 style="margin-bottom:10px">Cần làm (' + todo.length + ')</h3><div class="card" style="margin-bottom:22px">' + (todo.length ? todo.map(t => pTaskRow(t)).join('') : '<div class="empty" style="padding:24px">Em đã làm hết bài. Giỏi lắm!</div>') + '</div>' +
+      (done.length ? '<h3 style="margin-bottom:10px">Đã nộp</h3><div class="card">' + done.map(t => pTaskRow(t)).join('') + '</div>' : '');
+  }
+  return '<div class="portal">' + pv + '<div class="phead">' + avatar(s, 52) + '<div class="grow"><h1>Chào ' + esc(s.name) + '!</h1><div class="muted">' + esc(s.goal || s.level || '') + '</div></div>' + ring(cv.pct).replace('width="120" height="120"', 'width="86" height="86"').replace('class="ring"', 'class="ring" style="width:86px;height:86px"').replace('font-size:28px', '') + '</div>' +
+    '<div class="tabs">' + [['tasks', 'Bài tập', todo.length], ['weekly', 'Từ của tuần'], ['notes', 'Ghi chú'], ['roadmap', 'Lộ trình'], ['learned', 'Đã học']].map(([k, l, c]) => '<button class="tab ' + (S.pTab === k ? 'on' : '') + '" data-act="ptab" data-v="' + k + '">' + l + (c ? '<span class="cnt">' + c + '</span>' : '') + '</button>').join('') + '</div>' + body +
+    (!previewSid ? '<p class="small muted" style="margin-top:30px;text-align:center"><button class="btn ghost sm" data-act="logoutCode">Đổi mã học sinh</button></p>' : '') + '</div>';
+}
+function pTaskRow(t) {
+  const st = taskState(t), sc = taskScore(t), d = t.type === 'dictation';
+  return '<div class="task"><div class="ticon ' + (d ? 'd' : 't') + '">' + (d ? ICON.head : ICON.doc) + '</div><div class="body"><div class="ttl">' + esc(t.title) + '</div><div class="small muted">' + (d ? 'Dictation' : 'Bài tập') + (t.due ? ' · hạn ' + fmtDate(t.due) : '') + '</div><div class="chips">' + STATE_TAG[st] + (t.feedback ? '<span class="tag teal">Có nhận xét</span>' : '') + '</div></div>' +
+    (sc != null && st === 'reviewed' ? '<div class="score ' + scoreCls(sc) + '">' + sc + '%</div>' : '') + '<button class="btn sm ' + (['assigned', 'overdue'].includes(st) ? 'pri' : '') + '" data-act="openWork" data-id="' + t.id + '">' + (['assigned', 'overdue'].includes(st) ? 'Làm bài' : 'Xem') + '</button></div>';
+}
+function mediaBlock(t) {
+  if (t.assetId) return '<div data-media-slot="' + t.id + '" style="margin-bottom:14px"></div>';
+  if (t.videoUrl) {
+    let url = t.videoUrl;
+    try { const u = new URL(url); if (t.start && /youtu/.test(u.hostname)) { u.searchParams.set('t', t.start + 's'); url = u.toString(); } } catch (e) { }
+    const safe = /^https?:\/\//i.test(url) ? url : '#';
+    return '<div class="card pad" style="margin-bottom:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap"><a class="btn teal" href="' + esc(safe) + '" target="_blank" rel="noopener">' + ICON.ext + 'Mở video</a><span class="muted small">' + (t.start != null || t.end != null ? 'Nghe đoạn từ <b>' + (fmtTime(t.start) || '0:00') + '</b>' + (t.end != null ? ' đến <b>' + fmtTime(t.end) + '</b>' : '') + '. ' : '') + 'Video mở ở tab mới, em nghe rồi quay lại đây để gõ.</span></div>';
+  }
+  return '';
+}
+function buildPlayer(t) {
+  const wrap = document.createElement('div'); wrap.className = 'player'; wrap.dataset.asset = t.assetId;
+  const isVideo = /^video/.test(t.assetType || '');
+  const m = document.createElement(isVideo ? 'video' : 'audio');
+  m.src = t.assetUrl || ('/_blob/' + t.assetId); m.controls = true; m.preload = 'metadata'; if (isVideo) m.playsInline = true;
+  wrap.appendChild(m);
+  const start = t.start || 0, end = t.end;
+  m.addEventListener('loadedmetadata', () => { if (start && m.currentTime < start) m.currentTime = start; });
+  m.addEventListener('timeupdate', () => { if (end != null && m.currentTime >= end) { m.pause(); m.currentTime = end; } });
+  const ctl = document.createElement('div'); ctl.className = 'pctl';
+  ctl.innerHTML = '<button data-p="back">« 3 giây</button><button data-p="toggle">Phát / Dừng</button><button data-p="restart">Về đầu đoạn</button><span class="lbl">Tốc độ</span>' + [0.5, 0.75, 1, 1.25].map(r => '<button data-rate="' + r + '"' + (r === 1 ? ' class="on"' : '') + '>' + r + 'x</button>').join('') +
+    (start || end != null ? '<span class="lbl">Đoạn ' + fmtTime(start) + (end != null ? '–' + fmtTime(end) : '') + '</span>' : '');
+  ctl.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.p === 'back') m.currentTime = Math.max(start, m.currentTime - 3);
+    if (b.dataset.p === 'toggle') { if (m.paused) { if (end != null && m.currentTime >= end) m.currentTime = start; m.play().catch(() => { }); } else m.pause(); }
+    if (b.dataset.p === 'restart') { m.currentTime = start; m.play().catch(() => { }); }
+    if (b.dataset.rate) { m.playbackRate = +b.dataset.rate; ctl.querySelectorAll('[data-rate]').forEach(x => x.classList.toggle('on', x === b)); }
+  });
+  wrap.appendChild(ctl); wrap._media = m; wrap._start = start; wrap._end = end;
+  return wrap;
+}
+function workspace(s, t) {
+  const sub = S.data.subs[t.id], st = taskState(t), d = t.type === 'dictation';
+  const draftKey = LS_DRAFT + t.id; const chk = S.checks[t.id];
+  const isPreview = !!S.previewSid;
+  let html = '<button class="btn ghost sm" data-act="closeWork">← Quay lại</button><div class="head" style="margin-top:8px"><div><h1>' + esc(t.title) + '</h1><div class="sub">' + (d ? 'Dictation' : 'Bài tập') + (t.due ? ' · hạn ' + fmtDate(t.due) : '') + '</div></div>' + STATE_TAG[st] + '</div>';
+  if (t.instructions) html += '<div class="card pad pre" style="margin-bottom:14px">' + esc(t.instructions) + '</div>';
+  html += mediaBlock(t);
+  if (t.reviewedAt || t.feedback) {
+    const sc = taskScore(t);
+    html += '<div class="card pad" style="margin-bottom:14px;border-color:#bcd9d4;background:#f4faf8"><div class="row" style="justify-content:space-between"><h3>Nhận xét của giáo viên</h3>' + (sc != null ? '<span class="score ' + scoreCls(sc) + '">' + sc + '%</span>' : '') + '</div>' + (t.feedback ? '<p class="pre" style="margin:8px 0 0">' + esc(t.feedback) + '</p>' : '') + '</div>';
+  }
+  if (sub && !chk) {
+    html += '<div class="card pad" style="margin-bottom:14px"><h3 style="margin-bottom:8px">Bài em đã nộp · ' + fmtDate(sub.submittedAt) + '</h3>';
+    if (d && t.transcript && (t.showKey !== false || isPreview)) html += diffHTML(diffWords(t.transcript, sub.text));
+    else html += '<div class="pre">' + esc(sub.text || '') + '</div>';
+    html += '</div>';
+    if (st === 'reviewed') return html;
+    html += '<p class="small muted">Em vẫn có thể làm lại và gửi bài mới bên dưới.</p>';
+  }
+  let draft = lsGet(draftKey) || '';
+  if (d) {
+    html += '<div class="ws"><label class="f"><span>Em nghe và gõ lại những gì nghe được</span><textarea class="inp" data-k="dict-' + t.id + '" data-draft="' + t.id + '" data-autosize spellcheck="false" placeholder="Gõ ở đây…">' + esc(draft) + '</textarea>' +
+      (t.assetId ? '<small>Phím tắt khi đang gõ: <span class="kbd">Tab</span> phát/dừng · <span class="kbd">Shift+Tab</span> tua lại 3 giây</small>' : '') + '</label>' +
+      '<div class="row"><button class="btn pri" data-act="checkDict" data-id="' + t.id + '">Chấm bài</button></div></div>';
+    if (chk) {
+      html += '<div class="card pad" style="margin-top:16px"><div class="row" style="gap:20px;align-items:center;margin-bottom:12px">' + (chk.r.score != null ? '<div><div class="bigscore ' + 'score ' + scoreCls(chk.r.score) + '">' + chk.r.score + '%</div><div class="small muted">' + chk.r.ok + '/' + chk.r.total + ' từ đúng</div></div>' : '') +
+        '<div class="grow">' + (chk.saved ? '<b style="color:var(--s3)">Đã nộp cho giáo viên.</b>' : 'Gửi bài cho giáo viên để được nhận xét.') + '</div></div>' +
+        (t.transcript && (t.showKey !== false || isPreview) ? diffHTML(chk.r) : '<p class="muted small">Giáo viên sẽ xem đáp án và chữa bài cho em.</p>') +
+        '<div class="row" style="margin-top:14px">' + (S.canWrite && !isPreview && !chk.saved ? '<button class="btn teal" data-act="submitWork" data-id="' + t.id + '">Nộp cho giáo viên</button>' : '') +
+        '<button class="btn" data-act="copyWork" data-id="' + t.id + '">' + ICON.copy + 'Copy bài làm để gửi giáo viên</button></div></div>';
+    }
+  } else {
+    html += '<label class="f"><span>Ghi chú cho giáo viên (em đã làm gì, chỗ nào chưa hiểu)</span><textarea class="inp" data-k="note-' + t.id + '" data-draft="' + t.id + '" rows="4">' + esc(draft) + '</textarea></label>' +
+      '<div class="row">' + (S.canWrite && !isPreview ? '<button class="btn teal" data-act="submitWork" data-id="' + t.id + '">Báo đã hoàn thành</button>' : '') + '<button class="btn" data-act="copyWork" data-id="' + t.id + '">' + ICON.copy + 'Copy để gửi giáo viên</button></div>';
+  }
+  return html;
+}
+
+/* ============ modals: student / task / session / review ============ */
+function studentModal(id) {
+  const s = id ? getStudent(id) : null;
+  const tpls = Object.entries(S.data.templates);
+  const m = openModal(mHead(s ? 'Sửa thông tin học sinh' : 'Thêm học sinh') + '<form id="sf"><div class="mb">' +
+    '<label class="f"><span>Họ tên</span><input class="inp" name="name" required value="' + esc(s ? s.name : '') + '" autofocus></label>' +
+    '<div class="f2"><label class="f"><span>Trình độ / lớp</span><input class="inp" name="level" placeholder="VD: Lớp 8 · A2" value="' + esc(s ? s.level : '') + '"></label>' +
+    '<label class="f"><span>Màu</span><div class="row" id="colors">' + COLORS.map((c, i) => '<label style="cursor:pointer"><input type="radio" name="color" value="' + c + '" ' + ((s ? s.color === c : i === activeStudents().length % COLORS.length) ? 'checked' : '') + ' style="display:none"><span class="dot" style="width:22px;height:22px;background:' + c + ';display:inline-block;outline-offset:2px"></span></label>').join('') + '</div></label></div>' +
+    '<label class="f"><span>Mục tiêu</span><input class="inp" name="goal" placeholder="VD: IELTS Listening 6.5 trước tháng 6" value="' + esc(s ? s.goal : '') + '"></label>' +
+    '<label class="f"><span>Ghi chú riêng (chỉ bạn thấy)</span><textarea class="inp" name="note" rows="2">' + esc(s ? s.note : '') + '</textarea></label>' +
+    (!s && tpls.length ? '<label class="f"><span>Bắt đầu lộ trình từ mẫu</span><select class="inp" name="tpl"><option value="">— Lộ trình trống —</option>' + tpls.map(([tid, t]) => '<option value="' + tid + '">' + esc(t.name) + '</option>').join('') + '</select></label>' : '') +
+    '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">' + (s ? 'Lưu' : 'Thêm học sinh') + '</button></div></form>');
+  const paint = () => m.querySelectorAll('#colors label').forEach(l => l.querySelector('.dot').style.outline = l.querySelector('input').checked ? '2px solid var(--ink)' : 'none');
+  paint(); m.querySelector('#colors').addEventListener('change', paint);
+  m.querySelector('#sf').onsubmit = async e => {
+    e.preventDefault(); const f = new FormData(e.target);
+    const base = s ? clone(S.data.students[id]) : { createdAt: new Date().toISOString(), code: uniqueCode(), modules: [] };
+    base.name = String(f.get('name')).trim(); base.level = String(f.get('level') || '').trim(); base.goal = String(f.get('goal') || '').trim(); base.note = String(f.get('note') || '').trim(); base.color = f.get('color') || COLORS[0];
+    if (!base.name) return;
+    const srcMods = !s && f.get('tpl') ? (S.data.templates[f.get('tpl')].modules || []) : null;
+    if (srcMods) base.modules = freshModules(srcMods);
+    const nid = id || uid('s');
+    closeModal(); await saveDoc('students', nid, base);
+    if (srcMods) await copyPlans(srcMods, base.modules, 'students/' + nid);
+    if (!s) go('student', { sid: nid, tab: 'roadmap' });
+  };
+}
+function moduleModal(col, id, mid, preset) {
+  const d = ownerDoc(col, id); const m = mid ? (d.modules || []).find(x => x.id === mid) : null;
+  const cur = m ? m.skill : (preset || (skillOf(S.skillFilter) ? S.skillFilter : ''));
+  const mm = openModal(mHead(m ? 'Sửa chương' : 'Thêm chương') + '<form id="mf"><div class="mb"><label class="f"><span>Tên chương</span><input class="inp" name="title" required value="' + esc(m ? m.title : '') + '" placeholder="VD: Writing Task 2 – Opinion essay"></label>' +
+    '<div class="f"><span style="display:block;font-weight:600;font-size:13px;margin-bottom:6px">Kỹ năng</span><div class="skpick">' + SKILLS.map(x => '<label style="' + skVars(x.k) + '"><input type="radio" name="skill" value="' + x.k + '"' + (cur === x.k ? ' checked' : '') + ' required><span>' + x.label + '</span></label>').join('') + '</div></div>' +
+    '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">' + (m ? 'Lưu' : 'Thêm chương') + '</button></div></form>', { size: 'narrow' });
+  mm.querySelector('#mf').onsubmit = async e => {
+    e.preventDefault(); const f = new FormData(e.target); const title = String(f.get('title')).trim(), skill = f.get('skill') || ''; if (!title) return;
+    closeModal();
+    await saveModules(col, id, ms => { if (mid) { const x = ms.find(y => y.id === mid); x.title = title; x.skill = skill; } else ms.push({ id: uid('m'), title, skill, topics: [] }); });
+  };
+}
+function uniqueCode() { const used = new Set(studentList().map(s => s.code)); let c; do c = newCode(); while (used.has(c)); return c; }
+function freshModules(mods) { return clone(mods || []).map(m => ({ id: uid('m'), title: m.title, skill: m.skill || '', topics: (m.topics || []).map(t => ({ id: uid('t'), title: t.title, status: 0 })) })); }
+
+function topicPicker(s, selected) {
+  const mods = (s.modules || []).filter(m => (m.topics || []).length);
+  if (!mods.length) return '<div class="small muted">Lộ trình chưa có chủ đề nào.</div>';
+  return '<div class="tpick">' + mods.map(m => '<div class="g">' + esc(m.title) + (skillOf(m.skill) ? ' · <span style="color:' + skillOf(m.skill).color + '">' + skillOf(m.skill).short + '</span>' : '') + '</div>' + m.topics.map(t => '<label><input type="checkbox" name="topic" value="' + t.id + '"' + (selected.includes(t.id) ? ' checked' : '') + '><span>' + esc(t.title) + '</span><span class="tag ' + STATUS[t.status || 0].cls + '" style="margin-left:auto">' + STATUS[t.status || 0].label + '</span></label>').join('')).join('') + '</div>';
+}
+function taskModal(sid, tid) {
+  const s = getStudent(sid); const t = tid ? Object.assign({}, S.data.tasks[tid]) : { type: 'dictation', showKey: true, topicIds: [], due: addDays(today(), 3) };
+  const upState = { assetId: t.assetId || null, assetUrl: t.assetUrl || null, assetType: t.assetType || null, assetName: t.assetName || null, busy: false };
+  const canUpload = S.mode === 'cloud' && S.role === 'teacher' && !!sb;
+  const m = openModal(mHead(tid ? 'Sửa bài' : 'Giao bài cho ' + s.name) + '<form id="tf" class="' + (t.type === 'dictation' ? 'is-d' : '') + '"><div class="mb">' +
+    '<div class="seg" style="margin-bottom:14px"><button type="button" data-type="dictation" class="' + (t.type === 'dictation' ? 'on' : '') + '">Dictation</button><button type="button" data-type="task" class="' + (t.type !== 'dictation' ? 'on' : '') + '">Bài tập thường</button></div>' +
+    '<label class="f"><span>Tiêu đề</span><input class="inp" name="title" required value="' + esc(t.title || '') + '" placeholder="VD: Dictation – BBC 6 Minute English: Sleep"></label>' +
+    '<label class="f"><span>Hướng dẫn</span><textarea class="inp" name="instructions" rows="3" placeholder="VD: Nghe tối đa 3 lần mỗi câu, viết đầy đủ cả dấu câu.">' + esc(t.instructions || '') + '</textarea></label>' +
+    '<label class="f"><span>Link video (YouTube, Drive…)</span><input class="inp" name="videoUrl" type="url" value="' + esc(t.videoUrl || '') + '" placeholder="https://www.youtube.com/watch?v=…"><small>Học sinh mở link ở tab mới. Muốn có trình phát ngay trên trang (chỉnh tốc độ, tua 3 giây) thì tải file lên bên dưới.</small></label>' +
+    '<div class="f" style="margin-bottom:14px"><span style="display:block;font-weight:600;font-size:13px;margin-bottom:5px">File nghe/xem (mp3, m4a, mp4 · tối đa 50 MB)</span><div class="row" id="upRow"></div>' + (canUpload ? '' : '<small class="muted" style="display:block;margin-top:4px">Tải file chỉ dùng được khi đã kết nối Supabase.</small>') + '</div>' +
+    '<div class="f2"><label class="f"><span>Bắt đầu từ (phút:giây)</span><input class="inp" name="start" placeholder="0:00" value="' + esc(fmtTime(t.start)) + '"></label><label class="f"><span>Kết thúc ở (phút:giây)</span><input class="inp" name="end" placeholder="hết" value="' + esc(fmtTime(t.end)) + '"></label></div>' +
+    '<div class="only-d"><label class="f"><span>Đáp án (transcript) để chấm tự động</span><textarea class="inp" name="transcript" rows="5" placeholder="Dán transcript của đoạn nghe…">' + esc(t.transcript || '') + '</textarea><small>So khớp từng từ, không tính chữ hoa và dấu câu.</small></label>' +
+    '<label class="row" style="margin-bottom:14px;cursor:pointer"><input type="checkbox" name="showKey"' + (t.showKey !== false ? ' checked' : '') + '><span>Cho học sinh xem đáp án và lỗi sai sau khi chấm</span></label></div>' +
+    '<label class="f"><span>Hạn nộp</span><input class="inp" type="date" name="due" value="' + esc(t.due || '') + '" style="max-width:220px"></label>' +
+    '<div class="f"><span style="display:block;font-weight:600;font-size:13px;margin-bottom:5px">Gắn với kiến thức trong lộ trình</span>' + topicPicker(s, t.topicIds || []) + '<small class="muted" style="display:block;margin-top:4px">Chủ đề “Chưa học” sẽ tự chuyển sang “Đang học”.</small></div>' +
+    '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri" id="tfSave">' + (tid ? 'Lưu' : 'Giao bài') + '</button></div></form>', { size: 'wide', sticky: true });
+  const form = m.querySelector('#tf');
+  let type = t.type || 'dictation';
+  m.querySelectorAll('[data-type]').forEach(b => b.onclick = () => { type = b.dataset.type; m.querySelectorAll('[data-type]').forEach(x => x.classList.toggle('on', x === b)); form.classList.toggle('is-d', type === 'dictation'); });
+  const upRow = m.querySelector('#upRow');
+  const paintUp = () => {
+    if (upState.busy) { upRow.innerHTML = '<span class="muted">Đang tải lên…</span>'; return; }
+    upRow.innerHTML = (upState.assetId ? '<span class="tag teal">' + esc(upState.assetName || 'file') + '</span><button type="button" class="btn sm ghost danger" id="upRm">Bỏ file</button>' : '') +
+      '<label class="btn sm' + (canUpload ? '' : ' disabled') + '" style="' + (canUpload ? '' : 'opacity:.5;pointer-events:none') + '">' + ICON.plus + (upState.assetId ? 'Đổi file' : 'Chọn file') + '<input type="file" accept="audio/*,video/*" style="display:none" id="upIn"></label>';
+    const rm = upRow.querySelector('#upRm'); if (rm) rm.onclick = () => { upState.assetId = null; upState.assetUrl = null; upState.assetType = null; upState.assetName = null; paintUp(); };
+    const inp = upRow.querySelector('#upIn');
+    if (inp) inp.onchange = async () => {
+      const file = inp.files[0]; if (!file) return;
+      if (file.size > 50 * 1024 * 1024) { toast('File lớn hơn 50 MB. Hãy cắt ngắn hoặc nén lại.'); return; }
+      upState.busy = true; paintUp(); m.querySelector('#tfSave').disabled = true;
+      try { const path = uid('f') + '-' + file.name.replace(/[^A-Za-z0-9._-]/g, '_').slice(-60); const { error } = await sb.storage.from('media').upload(path, file, { contentType: file.type || undefined, upsert: false }); if (error) throw error; upState.assetId = path; upState.assetUrl = sb.storage.from('media').getPublicUrl(path).data.publicUrl; upState.assetType = file.type; upState.assetName = file.name; }
+      catch (e) { toast('Tải file không thành công' + (e && e.message ? ': ' + e.message : '.')); }
+      upState.busy = false; m.querySelector('#tfSave').disabled = false; paintUp();
+    };
+  };
+  paintUp();
+  form.onsubmit = async e => {
+    e.preventDefault(); if (upState.busy) return;
+    const f = new FormData(form);
+    const nt = Object.assign({}, tid ? clone(S.data.tasks[tid]) : { studentId: sid, createdAt: new Date().toISOString() });
+    nt.type = type; nt.title = String(f.get('title')).trim(); nt.instructions = String(f.get('instructions') || '').trim();
+    nt.videoUrl = String(f.get('videoUrl') || '').trim(); nt.start = parseTime(f.get('start')); nt.end = parseTime(f.get('end'));
+    nt.transcript = type === 'dictation' ? String(f.get('transcript') || '').trim() : '';
+    nt.showKey = !!f.get('showKey'); nt.due = f.get('due') || ''; nt.topicIds = f.getAll('topic');
+    nt.assetId = upState.assetId; nt.assetUrl = upState.assetUrl; nt.assetType = upState.assetType; nt.assetName = upState.assetName;
+    if (!nt.title) return;
+    if (nt.start == null) delete nt.start; if (nt.end == null) delete nt.end;
+    closeModal();
+    const id = tid || uid('k');
+    await saveDoc('tasks', id, nt);
+    const st = clone(S.data.students[sid]); let changed = false;
+    (st.modules || []).forEach(md => (md.topics || []).forEach(tp => { if (nt.topicIds.includes(tp.id) && !(tp.status > 0)) { tp.status = 1; changed = true; } }));
+    if (changed) await saveDoc('students', sid, st);
+    if (!tid) toast('Đã giao bài.');
+  };
+}
+function sessionModal(sid, sessId) {
+  const s = getStudent(sid); const x = sessId ? S.data.sessions[sessId] : { date: today(), topicIds: [] };
+  const m = openModal(mHead(sessId ? 'Sửa buổi học' : 'Ghi buổi học · ' + s.name) + '<form id="ssf"><div class="mb">' +
+    '<label class="f"><span>Ngày học</span><input class="inp" type="date" name="date" required value="' + esc(x.date) + '" style="max-width:220px"></label>' +
+    '<div class="f"><span style="display:block;font-weight:600;font-size:13px;margin-bottom:5px">Kiến thức đã dạy trong buổi</span>' + topicPicker(s, x.topicIds || []) + '</div>' +
+    '<label class="f"><span>Nội dung / nhận xét buổi học</span><textarea class="inp" name="note" rows="3" placeholder="VD: Ôn ending sounds, em còn bỏ âm /s/ cuối.">' + esc(x.note || '') + '</textarea></label>' +
+    '<label class="f"><span>Bài về nhà</span><input class="inp" name="homework" value="' + esc(x.homework || '') + '"></label>' +
+    '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">Lưu buổi học</button></div></form>', { size: 'wide' });
+  m.querySelector('#ssf').onsubmit = async e => {
+    e.preventDefault(); const f = new FormData(e.target);
+    const ns = Object.assign({}, sessId ? clone(S.data.sessions[sessId]) : { studentId: sid, createdAt: new Date().toISOString() });
+    ns.date = f.get('date'); ns.topicIds = f.getAll('topic'); ns.note = String(f.get('note') || '').trim(); ns.homework = String(f.get('homework') || '').trim();
+    closeModal();
+    await saveDoc('sessions', sessId || uid('v'), ns);
+    const st = clone(S.data.students[sid]); let changed = false;
+    (st.modules || []).forEach(md => (md.topics || []).forEach(tp => { if (ns.topicIds.includes(tp.id) && (tp.status || 0) < 2) { tp.status = 2; tp.coveredAt = ns.date; changed = true; } }));
+    if (changed) await saveDoc('students', sid, st);
+    toast(changed ? 'Đã lưu buổi học và cập nhật kiến thức đã cover.' : 'Đã lưu buổi học.');
+  };
+}
+function reviewModal(tid) {
+  const t = Object.assign({ id: tid }, S.data.tasks[tid]); const s = getStudent(t.studentId); const sub = S.data.subs[tid]; const d = t.type === 'dictation';
+  const tm = topicMap(s); const linked = (t.topicIds || []).filter(x => tm[x]);
+  const subPart = () => {
+    const cur = S.data.subs[tid];
+    if (!cur) return '<div class="banner info">Chưa có bài làm. Dán bài học sinh gửi qua Zalo/Messenger vào ô bên dưới.</div>';
+    let h = '<div class="row small muted" style="margin-bottom:6px;justify-content:space-between"><span>Nộp ' + fmtDate(cur.submittedAt) + (cur.source === 'teacher' ? ' (giáo viên nhập)' : '') + '</span>' + (cur.score != null ? '<span class="score ' + scoreCls(cur.score) + '">' + cur.score + '%</span>' : '') + '</div>';
+    if (d && t.transcript) h += diffHTML(diffWords(t.transcript, cur.text));
+    else h += '<div class="card pad pre" style="box-shadow:none">' + esc(cur.text || '(không có ghi chú)') + '</div>';
+    return h;
+  };
+  const m = openModal(mHead(t.title) + '<div class="mb"><div class="small muted" style="margin:-6px 0 12px">' + esc(s.name) + ' · ' + (d ? 'Dictation' : 'Bài tập') + (t.due ? ' · hạn ' + fmtDate(t.due) : '') + '</div>' +
+    '<div id="subPart">' + subPart() + '</div>' +
+    '<details style="margin:14px 0"' + (sub ? '' : ' open') + '><summary style="cursor:pointer;font-weight:600">' + (sub ? 'Thay bằng bài làm khác' : 'Nhập bài làm') + '</summary><div style="margin-top:8px"><textarea class="inp" id="pasteIn" rows="5" placeholder="Dán nguyên tin nhắn học sinh gửi (app tự lấy phần bài làm)…"></textarea><div class="row" style="margin-top:8px"><button class="btn sm teal" id="pasteBtn">' + (d && t.transcript ? 'Chấm & lưu bài làm' : 'Lưu bài làm') + '</button></div></div></details>' +
+    '<form id="rf"><div class="f2"><label class="f" style="grid-column:1/-1"><span>Nhận xét cho học sinh</span><textarea class="inp" name="feedback" rows="3">' + esc(t.feedback || '') + '</textarea></label>' +
+    '<label class="f"><span>Điểm (để trống = dùng điểm tự chấm)</span><input class="inp" name="grade" type="number" min="0" max="100" value="' + esc(t.grade ?? '') + '"></label></div>' +
+    (linked.length ? '<label class="row" style="cursor:pointer;margin-bottom:6px"><input type="checkbox" name="cover"' + (t.reviewedAt ? '' : ' checked') + '><span>Đánh dấu các chủ đề liên quan là “Đã cover”: ' + linked.map(x => '<span class="tag teal">' + esc(tm[x].title) + '</span>').join(' ') + '</span></label>' : '') +
+    '</form></div><div class="mf">' + (t.reviewedAt ? '<button class="btn ghost" id="unrev">Bỏ trạng thái đã chấm</button>' : '') + '<button class="btn" data-close>Đóng</button><button class="btn pri" id="rvSave">' + (t.reviewedAt ? 'Lưu nhận xét' : 'Lưu & đánh dấu đã chấm') + '</button></div>', { size: 'wide' });
+  m.querySelector('#pasteBtn').onclick = async () => {
+    const txt = extractAnswer(m.querySelector('#pasteIn').value); if (!txt) { toast('Chưa có nội dung.'); return; }
+    const r = d && t.transcript ? diffWords(t.transcript, txt) : null;
+    await saveDoc('subs', tid, { text: txt, score: r ? r.score : null, submittedAt: new Date().toISOString(), source: 'teacher' });
+    m.querySelector('#subPart').innerHTML = subPart(); m.querySelector('#pasteIn').value = ''; m.querySelector('details').open = false;
+    toast('Đã lưu bài làm' + (r ? ' · ' + r.score + '%' : '') + '.');
+  };
+  const un = m.querySelector('#unrev'); if (un) un.onclick = async () => { const nt = clone(S.data.tasks[tid]); delete nt.reviewedAt; closeModal(); await saveDoc('tasks', tid, nt); };
+  m.querySelector('#rvSave').onclick = async () => {
+    const f = new FormData(m.querySelector('#rf'));
+    const nt = clone(S.data.tasks[tid]); nt.feedback = String(f.get('feedback') || '').trim();
+    const g = String(f.get('grade') || '').trim(); if (g === '') delete nt.grade; else nt.grade = Math.max(0, Math.min(100, Number(g)));
+    if (!nt.reviewedAt) nt.reviewedAt = new Date().toISOString();
+    closeModal(); await saveDoc('tasks', tid, nt);
+    if (f.get('cover')) {
+      const st = clone(S.data.students[t.studentId]); let ch = false; const day = today();
+      (st.modules || []).forEach(md => (md.topics || []).forEach(tp => { if (linked.includes(tp.id) && (tp.status || 0) < 2) { tp.status = 2; tp.coveredAt = day; ch = true; } }));
+      if (ch) await saveDoc('students', t.studentId, st);
+    }
+    toast('Đã lưu.');
+  };
+}
+
+/* ============ sample template ============ */
+function seedTemplate() {
+  const mk = (skill, title, topics) => ({ id: uid('m'), title, skill, topics: topics.map(x => ({ id: uid('t'), title: x })) });
+  return {
+    name: 'IELTS 4 kỹ năng (gợi ý)', createdAt: new Date().toISOString(), modules: [
+      mk('speaking', 'Speaking – Phát âm & lưu loát', ['Âm cuối (ending sounds)', 'Nối âm & ngữ điệu', 'Từ nối khi nói (fillers, linking)']),
+      mk('speaking', 'Speaking – Part 1', ['Hometown, work & study', 'Hobbies & daily routine', 'Mở rộng câu trả lời: lý do + ví dụ']),
+      mk('speaking', 'Speaking – Part 2 & 3', ['Mô tả người', 'Mô tả nơi chốn', 'Mô tả sự kiện / trải nghiệm', 'Part 3: so sánh & đưa quan điểm']),
+      mk('listening', 'Listening – Nền tảng', ['Nghe số, tên riêng, đánh vần', 'Dạng yếu & nối âm', 'Dictation câu ngắn hằng ngày']),
+      mk('listening', 'Listening – Dạng bài', ['Form / Note completion', 'Map / Plan labelling', 'Multiple choice', 'Matching', 'Section 4 – bài giảng']),
+      mk('writing', 'Writing Task 2 – Nền tảng', ['Phân tích đề & các dạng đề', 'Cấu trúc bài 4 đoạn', 'Viết mở bài', 'Topic sentence & phát triển ý']),
+      mk('writing', 'Writing Task 2 – Dạng bài', ['Opinion (Agree / Disagree)', 'Discussion (Both views)', 'Advantages / Disadvantages', 'Problem / Solution', 'Two-part question']),
+      mk('writing', 'Writing Task 2 – Ngôn ngữ', ['Câu phức & mệnh đề quan hệ', 'Từ nối (linking words)', 'Collocations theo chủ đề']),
+      mk('reading', 'Reading – Kỹ năng', ['Skimming & scanning', 'Paraphrase & từ đồng nghĩa', 'Quản lý thời gian 60 phút']),
+      mk('reading', 'Reading – Dạng bài', ['True / False / Not Given', 'Matching headings', 'Sentence / Summary completion', 'Multiple choice']),
+    ]
+  };
+}
+
+/* ============ events ============ */
+document.addEventListener('click', async e => {
+  const el = e.target.closest('[data-act]'); if (!el || !$('#root').contains(el)) return;
+  const a = el.dataset.act, id = el.dataset.id, col = el.dataset.col, mid = el.dataset.m, tid = el.dataset.t;
+  switch (a) {
+    case 'toLogin': S.mode = 'login'; S.authMsg = ''; render(); break;
+    case 'toStudent': S.mode = 'cloud'; S.role = 'student'; render(); break;
+    case 'authMode': S.authMode = S.authMode === 'up' ? 'in' : 'up'; S.authMsg = ''; render(); break;
+    case 'logout': await flushNote(); if (sb) await sb.auth.signOut(); location.href = location.pathname; break;
+    case 'copyLink': copyText(studentLink(getStudent(id).code)); break;
+    case 'regenCode': {
+      const s0 = getStudent(id); if (!(await confirmBox('Đổi mã của ' + s0.name + '? Link và mã cũ sẽ không dùng được nữa, bạn cần gửi link mới cho em.', 'Đổi mã', false))) return;
+      const st = clone(S.data.students[id]); st.code = uniqueCode(); await saveDoc('students', id, st); toast('Mã mới: ' + st.code); break;
+    }
+    case 'side': S.sideOpen = !S.sideOpen; render(); break;
+    case 'nav': go(el.dataset.v, { tplId: null }); break;
+    case 'openStudent': go('student', { sid: id, tab: S.sid === id ? S.tab : 'roadmap', taskFilter: 'all' }); break;
+    case 'addStudent': studentModal(null); break;
+    case 'editStudent': studentModal(id); break;
+    case 'delStudent': {
+      const s = getStudent(id);
+      if (!(await confirmBox('Xoá học sinh “' + s.name + '” cùng toàn bộ lộ trình, bài tập và buổi học? Không thể hoàn tác.'))) return;
+      go('overview');
+      for (const t of tasksOf(id)) { await delDoc('tasks', t.id); if (S.data.subs[t.id]) await delDoc('subs', t.id); }
+      for (const x of sessionsOf(id)) await delDoc('sessions', x.id);
+      await delDoc('students', id); toast('Đã xoá.'); break;
+    }
+    case 'copyCode': { const s = getStudent(id); copyText(s.code); break; }
+    case 'preview': S.previewSid = id; S.pTab = el.dataset.v || 'tasks'; S.noteOpen = null; S.noteDraft = null; S.openTask = null; S.checks = {}; render(); window.scrollTo(0, 0); break;
+    case 'exitPreview': await flushNote(); S.previewSid = null; S.openTask = null; render(); break;
+    case 'tab': S.tab = el.dataset.v; render(); break;
+    case 'tfilter': S.taskFilter = el.dataset.v; render(); break;
+    case 'addModule': moduleModal(col, id, null); break;
+    case 'addModuleSkill': moduleModal('students', id, null, el.dataset.v); break;
+    case 'skfilter': S.skillFilter = el.dataset.v; render(); break;
+    case 'modRename': moduleModal(col, id, mid); break;
+    case 'speak': speak(el.dataset.t || ''); break;
+    case 'wkNav': { const v = +el.dataset.v; S.wk = v === 0 ? null : addDays(S.wk || mondayOf(), v); render(); break; }
+    case 'wkGo': S.wk = el.dataset.w; render(); window.scrollTo(0, 0); break;
+    case 'wAdd': wordModal(el.dataset.w, null); break;
+    case 'wEdit': wordModal(el.dataset.w, el.dataset.i); break;
+    case 'wDel': { const it = weekItems(el.dataset.w).find(x => x.id === el.dataset.i); if (await confirmBox('Xoá “' + it.text + '” khỏi tuần này?')) await saveWeek(el.dataset.w, items => items.splice(items.findIndex(x => x.id === el.dataset.i), 1)); break; }
+    case 'wUp': case 'wDown': await saveWeek(el.dataset.w, items => { const i = items.findIndex(x => x.id === el.dataset.i), j = i + (a === 'wUp' ? -1 : 1); if (j >= 0 && j < items.length) [items[i], items[j]] = [items[j], items[i]]; }); break;
+    case 'wCopyPrev': { const ws = el.dataset.w; const prev = weekItems(addDays(ws, -7)); await saveWeek(ws, items => prev.forEach(x => items.push(Object.assign({}, x, { id: uid('x') })))); toast('Đã chép từ tuần trước, bạn sửa lại cho tuần này nhé.'); break; }
+    case 'togglePlan': S.openPlans[mid] = !S.openPlans[mid]; if (S.openPlans[mid] && !planText(mid)) { planModal(col, id, mid); } render(); break;
+    case 'editPlan': planModal(col, id, mid); break;
+    case 'modDel': { const m = ownerDoc(col, id).modules.find(x => x.id === mid); if (await confirmBox('Xoá chương “' + m.title + '” và ' + (m.topics || []).length + ' chủ đề bên trong?')) { await saveModules(col, id, ms => { ms.splice(ms.findIndex(x => x.id === mid), 1); }); if ((S.data.plans || {})[mid]) await delDoc('plans', mid); } break; }
+    case 'modUp': case 'modDown': await saveModules(col, id, ms => { const i = ms.findIndex(x => x.id === mid), j = i + (a === 'modUp' ? -1 : 1); if (j >= 0 && j < ms.length) [ms[i], ms[j]] = [ms[j], ms[i]]; }); break;
+    case 'tUp': case 'tDown': await saveModules(col, id, ms => { const ts = ms.find(x => x.id === mid).topics; const i = ts.findIndex(x => x.id === tid), j = i + (a === 'tUp' ? -1 : 1); if (j >= 0 && j < ts.length) [ts[i], ts[j]] = [ts[j], ts[i]]; }); break;
+    case 'tRename': { const t = ownerDoc(col, id).modules.find(x => x.id === mid).topics.find(x => x.id === tid); const name = await promptBox('Đổi tên chủ đề', t.title); if (name) await saveModules(col, id, ms => { ms.find(x => x.id === mid).topics.find(x => x.id === tid).title = name; }); break; }
+    case 'tDel': await saveModules(col, id, ms => { const ts = ms.find(x => x.id === mid).topics; ts.splice(ts.findIndex(x => x.id === tid), 1); }); break;
+    case 'applyTpl': {
+      const tpls = Object.entries(S.data.templates);
+      if (!tpls.length) { toast('Chưa có mẫu. Vào “Mẫu lộ trình” để tạo.'); return; }
+      const m = openModal(mHead('Áp dụng mẫu lộ trình') + '<form id="af"><div class="mb"><label class="f"><span>Chọn mẫu</span><select class="inp" name="tpl">' + tpls.map(([k, t]) => '<option value="' + k + '">' + esc(t.name) + '</option>').join('') + '</select></label>' +
+        ((getStudent(id).modules || []).length ? '<label class="row" style="margin-bottom:8px"><input type="radio" name="mode" value="append" checked> Thêm vào cuối lộ trình hiện tại</label><label class="row"><input type="radio" name="mode" value="replace"> Thay thế toàn bộ lộ trình hiện tại</label>' : '') +
+        '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">Áp dụng</button></div></form>', { size: 'narrow' });
+      m.querySelector('#af').onsubmit = async ev => { ev.preventDefault(); const f = new FormData(ev.target); const src = S.data.templates[f.get('tpl')].modules || []; const mods = freshModules(src); closeModal(); await saveModules('students', id, ms => { if (f.get('mode') === 'replace') ms.splice(0); ms.push(...mods); }); await copyPlans(src, mods, 'students/' + id); toast('Đã áp dụng mẫu (kèm giáo án).'); };
+      break;
+    }
+    case 'saveAsTpl': { const s = getStudent(id); const name = await promptBox('Lưu lộ trình thành mẫu', 'Lộ trình của ' + s.name, 'Tên mẫu'); if (name) { const tid2 = uid('p'); const nm = freshModules(s.modules).map(m => ({ id: m.id, title: m.title, skill: m.skill, topics: m.topics.map(t => ({ id: t.id, title: t.title })) })); await saveDoc('templates', tid2, { name, createdAt: new Date().toISOString(), modules: nm }); await copyPlans(s.modules || [], nm, 'templates/' + tid2); toast('Đã lưu mẫu.'); } break; }
+    case 'seedTpl': await saveDoc('templates', uid('p'), seedTemplate()); toast('Đã thêm mẫu IELTS 4 kỹ năng.'); break;
+    case 'newTpl': { const name = await promptBox('Mẫu lộ trình mới', '', 'Tên mẫu (VD: IELTS Listening 0 → 6.5)'); if (name) { const nid = uid('p'); await saveDoc('templates', nid, { name, createdAt: new Date().toISOString(), modules: [] }); go('templates', { tplId: nid }); } break; }
+    case 'openTpl': go('templates', { tplId: id }); break;
+    case 'renameTpl': { const name = await promptBox('Đổi tên mẫu', S.data.templates[id].name); if (name) { const t = clone(S.data.templates[id]); t.name = name; await saveDoc('templates', id, t); } break; }
+    case 'delTpl': if (await confirmBox('Xoá mẫu “' + S.data.templates[id].name + '”? Lộ trình của học sinh không bị ảnh hưởng.')) await delDoc('templates', id); break;
+    case 'newTask': taskModal(id, null); break;
+    case 'editTask': taskModal(S.data.tasks[id].studentId, id); break;
+    case 'delTask': if (await confirmBox('Xoá bài “' + S.data.tasks[id].title + '” và bài làm của học sinh?')) { await delDoc('tasks', id); if (S.data.subs[id]) await delDoc('subs', id); } break;
+    case 'review': reviewModal(id); break;
+    case 'newSession': sessionModal(id, null); break;
+    case 'editSession': sessionModal(S.data.sessions[id].studentId, id); break;
+    case 'delSession': if (await confirmBox('Xoá buổi học này? (Trạng thái kiến thức trong lộ trình giữ nguyên.)')) await delDoc('sessions', id); break;
+    /* portal */
+    case 'ptab': await flushNote(); S.pTab = el.dataset.v; render(); break;
+    case 'newNote': await newNote(id, S.previewSid ? 'teacher' : 'student'); break;
+    case 'openNote': { const n = notesOf(el.dataset.s).find(x => x.id === id); await openNote(n); break; }
+    case 'delNote': {
+      const d = S.noteDraft; if (!d || !(await confirmBox('Xoá ghi chú “' + (d.title || 'Không tiêu đề') + '”?'))) return;
+      clearTimeout(noteTimer); S.noteStatus = '';
+      const L = localNotes(d.studentId); if (L[d.id]) { delete L[d.id]; setLocalNotes(d.studentId, L); }
+      S.noteOpen = null; S.noteDraft = null;
+      if ((S.data.notes || {})[d.id]) await delDoc('notes', d.id); else render();
+      break;
+    }
+    case 'syncNotes': {
+      const L = localNotes(id); let n = 0;
+      S.notesLocalOnly = false;
+      for (const [nid, body] of Object.entries(L)) { if (await saveDoc('notes', nid, body, true)) { n++; const L2 = localNotes(id); delete L2[nid]; setLocalNotes(id, L2); } else { S.notesLocalOnly = true; break; } }
+      if (n) S.notesLocalOnly = false; toast(n ? 'Đã đưa ' + n + ' ghi chú lên mạng.' : 'Chưa đưa lên được, thử lại sau.'); render(); break;
+    }
+    case 'logoutCode': await flushNote(); S.noteOpen = null; S.noteDraft = null; S.studentCode = null; S.bundleChecked = false; lsDel(LS_CODE); if (S.role === 'student') COLS.forEach(c => S.data[c] = {}); render(); break;
+    case 'openWork': S.openTask = id; render(); window.scrollTo(0, 0); break;
+    case 'closeWork': S.openTask = null; render(); break;
+    case 'checkDict': {
+      const t = S.data.tasks[id]; const txt = ($('[data-draft="' + id + '"]') || {}).value || '';
+      if (!txt.trim()) { toast('Em chưa gõ gì.'); return; }
+      lsSet(LS_DRAFT + id, txt);
+      S.checks[id] = { text: txt, r: t.transcript ? diffWords(t.transcript, txt) : { score: null, ops: [], ok: 0, total: 0 }, saved: false };
+      render(); break;
+    }
+    case 'submitWork': {
+      const t = S.data.tasks[id]; const txt = ($('[data-draft="' + id + '"]') || {}).value || '';
+      lsSet(LS_DRAFT + id, txt);
+      const r = t.type === 'dictation' && t.transcript ? diffWords(t.transcript, txt) : null;
+      const ok = await saveDoc('subs', id, { text: txt.trim(), score: r ? r.score : null, submittedAt: new Date().toISOString(), source: 'student' });
+      if (ok) { if (S.checks[id]) S.checks[id].saved = true; lsDel(LS_DRAFT + id); toast('Đã nộp bài.'); render(); if (S.role === 'student') loadBundle(true); }
+      else { toast('Chưa nộp được. Em kiểm tra mạng rồi thử lại, hoặc bấm “Copy” để gửi giáo viên.'); }
+      break;
+    }
+    case 'copyWork': {
+      const t = S.data.tasks[id]; const s = getStudent(t.studentId); const txt = ($('[data-draft="' + id + '"]') || {}).value || (S.checks[id] || {}).text || '';
+      const r = t.type === 'dictation' && t.transcript ? diffWords(t.transcript, txt) : null;
+      copyText('[' + (t.type === 'dictation' ? 'Dictation' : 'Bài tập') + '] ' + t.title + '\nHọc sinh: ' + s.name + (r ? '\nĐiểm tự chấm: ' + r.score + '%' : '') + '\n--- Bài làm ---\n' + txt.trim());
+      break;
+    }
+  }
+});
+document.addEventListener('change', async e => {
+  const el = e.target;
+  if (el.dataset && el.dataset.nf && S.noteDraft && (el.dataset.nf === 'date' || el.dataset.nf === 'skill')) {
+    S.noteDraft[el.dataset.nf] = el.value; S.noteStatus = 'dirty'; await flushNote(); render(); return;
+  }
+  if (el.dataset && el.dataset.chg === 'modSkill') {
+    const v = el.value; await saveModules(el.dataset.col, el.dataset.id, ms => { ms.find(x => x.id === el.dataset.m).skill = v; }); return;
+  }
+  if (el.dataset && el.dataset.chg === 'topicStatus') {
+    const v = +el.value, col = el.dataset.col, id = el.dataset.id, mid = el.dataset.m, tid = el.dataset.t;
+    await saveModules(col, id, ms => { const t = ms.find(x => x.id === mid).topics.find(x => x.id === tid); t.status = v; if (v >= 2 && !t.coveredAt) t.coveredAt = today(); if (v < 2) delete t.coveredAt; });
+  }
+});
+document.addEventListener('submit', async e => {
+  const f = e.target; if (!f.dataset || !f.dataset.form) return; e.preventDefault();
+  if (f.dataset.form === 'addTopic') {
+    const inp = f.querySelector('input'); const lines = inp.value.split(/\n|;/).map(x => x.trim()).filter(Boolean);
+    if (!lines.length) return; inp.value = '';
+    await saveModules(f.dataset.col, f.dataset.id, ms => { const m = ms.find(x => x.id === f.dataset.m); m.topics = m.topics || []; lines.forEach(l => m.topics.push(f.dataset.col === 'students' ? { id: uid('t'), title: l, status: 0 } : { id: uid('t'), title: l })); });
+    const again = $('[data-k="add-' + f.dataset.m + '"]'); if (again) again.focus();
+  }
+  if (f.dataset.form === 'code') {
+    const c = String(new FormData(f).get('code') || '').trim().toUpperCase(); if (!c) return;
+    S.studentCode = c; lsSet(LS_CODE, c); S.pTab = 'tasks'; S.openTask = null; S.bundleChecked = false;
+    if (S.mode === 'cloud' && S.role === 'student') loadBundle(); else render();
+  }
+  if (f.dataset.form === 'login') {
+    const fd = new FormData(f); const email = String(fd.get('email')).trim(), password = String(fd.get('password'));
+    S.authBusy = true; S.authMsg = ''; S.authOk = false; render();
+    try {
+      if (S.authMode === 'up') {
+        const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin + location.pathname } });
+        if (error) throw error;
+        if (data.session) { S.authBusy = false; S.mode = 'loading'; firstLoadDone = false; render(); if (await enterTeacher()) return; S.mode = 'login'; firstLoadDone = true; }
+        else { S.authOk = true; S.authMsg = 'Đã tạo tài khoản. Mở email để bấm link xác nhận, rồi quay lại đây đăng nhập.'; S.authMode = 'in'; }
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        S.authBusy = false; S.mode = 'loading'; firstLoadDone = false; render(); if (await enterTeacher()) return; S.mode = 'login'; firstLoadDone = true;
+      }
+    } catch (err) {
+      const m = (err && err.message) || '';
+      S.authMsg = /invalid login/i.test(m) ? 'Sai email hoặc mật khẩu.' : /not confirmed/i.test(m) ? 'Email chưa được xác nhận. Mở email và bấm link xác nhận trước.' : /already registered/i.test(m) ? 'Email này đã có tài khoản, hãy đăng nhập.' : 'Không thực hiện được: ' + m;
+    }
+    S.authBusy = false; render();
+  }
+});
+document.addEventListener('paste', e => {
+  const el = e.target; if (!el.matches || !el.matches('.addrow input')) return;
+  const txt = (e.clipboardData || window.clipboardData).getData('text');
+  if (txt && /\n/.test(txt.trim())) { e.preventDefault(); el.value = txt.trim().split(/\r?\n/).map(x => x.trim()).filter(Boolean).join('; '); }
+});
+let draftT;
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.dataset && el.dataset.nf && S.noteDraft && (el.dataset.nf === 'title' || el.dataset.nf === 'body')) {
+    S.noteDraft[el.dataset.nf] = el.value; scheduleNoteSave();
+    const it = $('.nitem.on'); if (it) { if (el.dataset.nf === 'title') it.querySelector('.t').textContent = el.value || 'Không tiêu đề'; else it.querySelector('.sn').textContent = el.value.slice(0, 80) || '…'; }
+    if (el.tagName === 'TEXTAREA') { el.style.height = 'auto'; el.style.height = Math.max(el.scrollHeight + 4, 360) + 'px'; }
+    return;
+  }
+  if (el.dataset && el.dataset.nq !== undefined) { S.noteQ = el.value; render(); return; }
+  if (el.dataset && el.dataset.draft) { clearTimeout(draftT); const k = LS_DRAFT + el.dataset.draft, v = el.value; draftT = setTimeout(() => lsSet(k, v), 400); if (el.hasAttribute('data-autosize')) autosize(el); }
+});
+document.addEventListener('keydown', e => {
+  const el = e.target; if (!(el.dataset && el.dataset.draft) || e.key !== 'Tab') return;
+  const p = mediaCache[el.dataset.draft]; if (!p || !p.isConnected) return;
+  e.preventDefault(); const m = p._media;
+  if (e.shiftKey) { m.currentTime = Math.max(p._start || 0, m.currentTime - 3); if (m.paused) m.play().catch(() => { }); }
+  else if (m.paused) { if (p._end != null && m.currentTime >= p._end) m.currentTime = p._start || 0; m.play().catch(() => { }); } else m.pause();
+});
+
+boot();
+</script>
+</body>
+</html>

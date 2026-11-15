@@ -1,0 +1,3 @@
+migrate.sql
+*.md.bak
+.DS_Store

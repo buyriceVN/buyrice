@@ -640,9 +640,8 @@ function wordCard(it, teacher, ws, idx, n) {
     (it.ipa || it.pos ? '<div class="ipa">' + (it.pos ? '<span class="wpos">' + esc(it.pos) + '</span>' : '') + esc(it.ipa || '') + '</div>' : '') +
     (it.meaning ? '<div class="mn">' + esc(it.meaning) + '</div>' : '') +
     (it.example ? '<div class="ex">“' + esc(it.example) + '” <button class="ib" style="vertical-align:-3px" title="Nghe câu ví dụ" data-act="speak" data-t="' + esc(it.example) + '">' + ICON.sound + '</button></div>' : '') +
-    (it.parts || it.explain ? '<details class="wexp"' + (teacher ? ' open' : '') + '><summary>Giải thích từ</summary>' +
-      (it.parts ? '<div class="wx"><b>Thành phần</b><div class="pre">' + esc(it.parts) + '</div></div>' : '') +
-      (it.explain ? '<div class="wx"><b>Ý nghĩa</b><div class="pre">' + esc(it.explain) + '</div></div>' : '') + '</details>' : '') +
+    (it.parts ? '<details class="wexp"' + (teacher ? ' open' : '') + '><summary>Thành phần từ</summary>' +
+      '<div class="wx"><div class="pre">' + esc(it.parts) + '</div></div></details>' : '') +
     (teacher ? '<div class="wacts"><button class="ib" title="Lên" data-act="wUp" ' + A + (idx === 0 ? ' disabled' : '') + '>' + ICON.up + '</button><button class="ib" title="Xuống" data-act="wDown" ' + A + (idx === n - 1 ? ' disabled' : '') + '>' + ICON.down + '</button><span class="grow"></span><button class="ib" title="Sửa" data-act="wEdit" ' + A + '>' + ICON.edit + '</button><button class="ib del" title="Xoá" data-act="wDel" ' + A + '>' + ICON.trash + '</button></div>' : '') + '</div>';
 }
 async function saveWeek(ws, mutate) {
@@ -661,7 +660,6 @@ function wordModal(ws, iid) {
     '<label class="f"><span>Câu ví dụ</span><input class="inp" name="example" value="' + esc(it.example || '') + '" placeholder="He told a joke to break the ice."></label>' +
     '<label class="f"><span>Từ loại</span><select class="inp" name="pos">' + '<option value=""' + (it.pos === '' ? ' selected' : '') + '>— Từ loại —</option>' + '<option value="noun (n.)"' + (it.pos === 'noun (n.)' ? ' selected' : '') + '>noun (n.)</option>' + '<option value="verb (v.)"' + (it.pos === 'verb (v.)' ? ' selected' : '') + '>verb (v.)</option>' + '<option value="adjective (adj.)"' + (it.pos === 'adjective (adj.)' ? ' selected' : '') + '>adjective (adj.)</option>' + '<option value="adverb (adv.)"' + (it.pos === 'adverb (adv.)' ? ' selected' : '') + '>adverb (adv.)</option>' + '<option value="phrasal verb"' + (it.pos === 'phrasal verb' ? ' selected' : '') + '>phrasal verb</option>' + '<option value="idiom"' + (it.pos === 'idiom' ? ' selected' : '') + '>idiom</option>' + '<option value="collocation"' + (it.pos === 'collocation' ? ' selected' : '') + '>collocation</option>' + '<option value="phrase"' + (it.pos === 'phrase' ? ' selected' : '') + '>phrase</option>' + '</select></label>' +
     '<label class="f"><span>Thành phần (cấu tạo từ)</span><textarea class="inp" name="parts" rows="2" style="min-height:60px" placeholder="VD: break (phá vỡ) + the ice (lớp băng)\nhoặc: com- (cùng nhau) + mute (thay đổi, di chuyển)">' + esc(it.parts || '') + '</textarea></label>' +
-    '<label class="f"><span>Giải thích ý nghĩa</span><textarea class="inp" name="explain" rows="3" style="min-height:70px" placeholder="VD: &quot;Phá lớp băng&quot; giữa những người mới gặp, tức là làm không khí bớt ngượng. Dùng khi bắt đầu cuộc trò chuyện, buổi họp, lớp học.">' + esc(it.explain || '') + '</textarea></label>' +
     '<button type="button" class="btn sm" id="wTry">' + ICON.sound + 'Nghe thử</button>' +
     '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">' + (iid ? 'Lưu' : 'Thêm') + '</button></div></form>', { size: 'narrow' });
   let type = it.type === 'expr' ? 'expr' : 'word';
@@ -669,7 +667,7 @@ function wordModal(ws, iid) {
   m.querySelector('#wTry').onclick = () => { const v = m.querySelector('[name=text]').value.trim(); if (v) speak(v); };
   m.querySelector('#wf').onsubmit = async e => {
     e.preventDefault(); const f = new FormData(e.target);
-    const n = { id: iid || uid('x'), type, text: String(f.get('text')).trim(), ipa: String(f.get('ipa') || '').trim(), meaning: String(f.get('meaning') || '').trim(), example: String(f.get('example') || '').trim(), pos: String(f.get('pos') || ''), parts: String(f.get('parts') || '').trim(), explain: String(f.get('explain') || '').trim() };
+    const n = { id: iid || uid('x'), type, text: String(f.get('text')).trim(), ipa: String(f.get('ipa') || '').trim(), meaning: String(f.get('meaning') || '').trim(), example: String(f.get('example') || '').trim(), pos: String(f.get('pos') || ''), parts: String(f.get('parts') || '').trim() };
     if (!n.text) return; closeModal();
     await saveWeek(ws, items => { const i = items.findIndex(x => x.id === n.id); if (i >= 0) items[i] = n; else items.push(n); });
   };

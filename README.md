@@ -7,4 +7,4 @@ Web app giúp gia sư thiết kế lộ trình, giao bài dictation, ghi buổi 
 - Giáo viên đăng nhập bằng email/mật khẩu (tài khoản đầu tiên là giáo viên).
 - Học sinh vào bằng link `/?ma=<MÃ>` hoặc tự nhập mã 6 ký tự.
 
-Trang chạy tại: https://lisa65181992-sudo.github.io/buyrice/
+Trang chạy tại: https://buyricevn.github.io/buyrice/

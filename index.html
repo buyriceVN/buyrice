@@ -620,29 +620,41 @@ function tNotes(s) {
       : '<div class="card"><div class="empty"><h3>Chưa có ghi chú</h3><p>Khi học sinh ghi chú ở tab “Ghi chú” trên trang của em, nội dung sẽ hiện ở đây.</p></div></div>');
 }
 
-/* ============ words of the week ============ */
+/* ============ words of the week (mỗi từ hiện 7 ngày kể từ ngày bắt đầu) ============ */
+const WORD_DAYS = 7;
 function mondayOf(iso) { const d = new Date((iso || today()) + 'T00:00:00'); const k = (d.getDay() + 6) % 7; d.setDate(d.getDate() - k); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 const weekId = ws => 'w' + ws;
-function weekLabel(ws) { const e = addDays(ws, 6); return fmtDateShort(ws) + ' – ' + fmtDate(e); }
 function weekItems(ws) { const w = (S.data.weekly || {})[weekId(ws)]; return (w && w.items) || []; }
-function visibleWeeks() {
-  const cur = mondayOf();
-  return Object.values(S.data.weekly || {}).filter(w => w && w.weekStart && w.weekStart <= cur && (w.items || []).length).sort((a, b) => b.weekStart.localeCompare(a.weekStart));
+function dayDiff(a, b) { return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000); }
+function allWords() {
+  const out = [];
+  Object.values(S.data.weekly || {}).forEach(w => { if (!w || !w.weekStart) return; (w.items || []).forEach((it, i) => { const start = it.start || w.weekStart; out.push({ it, ws: w.weekStart, start, end: addDays(start, WORD_DAYS), ord: i }); }); });
+  return out.sort((a, b) => b.start.localeCompare(a.start) || b.ord - a.ord);
+}
+function activeWords() { const t = today(); return allWords().filter(x => x.start <= t && t < x.end); }
+function upcomingWords() { const t = today(); return allWords().filter(x => x.start > t).reverse(); }
+function expiredWords() { const t = today(); return allWords().filter(x => x.end <= t); }
+function wordStatus(x) {
+  const t = today();
+  if (x.start > t) return '<span class="tag acc">Hiện từ ' + fmtDateShort(x.start) + '</span>';
+  if (x.end <= t) return '<span class="tag">Đã hết hạn ' + fmtDateShort(addDays(x.end, -1)) + '</span>';
+  const left = dayDiff(t, x.end);
+  return '<span class="tag s3">' + (left <= 1 ? 'Hôm nay là ngày cuối' : 'Còn ' + left + ' ngày') + '</span>';
 }
 function speak(text) {
   try { if (!('speechSynthesis' in window)) { toast('Trình duyệt này không hỗ trợ đọc phát âm.'); return; } const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.9; const v = speechSynthesis.getVoices().find(x => /^en[-_]US/i.test(x.lang)) || speechSynthesis.getVoices().find(x => /^en/i.test(x.lang)); if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { toast('Không phát được âm thanh.'); }
 }
 try { if ('speechSynthesis' in window) speechSynthesis.getVoices(); } catch (e) { }
-function wordCard(it, teacher, ws, idx, n) {
-  const A = 'data-w="' + ws + '" data-i="' + it.id + '"';
-  return '<div class="card witem"><span class="wtype ' + (it.type === 'expr' ? 'expr' : 'word') + '">' + (it.type === 'expr' ? 'Expression' : 'Word') + '</span>' +
+function wordCard(x, teacher, showStatus) {
+  const it = x.it; const A = 'data-w="' + x.ws + '" data-i="' + it.id + '"';
+  return '<div class="card witem"><div class="row" style="gap:6px;margin-bottom:8px;align-items:center"><span class="wtype ' + (it.type === 'expr' ? 'expr' : 'word') + '" style="margin:0">' + (it.type === 'expr' ? 'Expression' : 'Word') + '</span>' + (showStatus ? '<span class="grow"></span>' + wordStatus(x) : '') + '</div>' +
     '<div class="wt"><div class="ww">' + esc(it.text) + '</div><button class="spk" title="Nghe phát âm" data-act="speak" data-t="' + esc(it.text) + '">' + ICON.sound + '</button></div>' +
     (it.ipa || it.pos ? '<div class="ipa">' + (it.pos ? '<span class="wpos">' + esc(it.pos) + '</span>' : '') + esc(it.ipa || '') + '</div>' : '') +
     (it.meaning ? '<div class="mn">' + esc(it.meaning) + '</div>' : '') +
     (it.example ? '<div class="ex">“' + esc(it.example) + '” <button class="ib" style="vertical-align:-3px" title="Nghe câu ví dụ" data-act="speak" data-t="' + esc(it.example) + '">' + ICON.sound + '</button></div>' : '') +
     (it.parts ? '<details class="wexp"' + (teacher ? ' open' : '') + '><summary>Thành phần từ</summary>' +
       '<div class="wx"><div class="pre">' + esc(it.parts) + '</div></div></details>' : '') +
-    (teacher ? '<div class="wacts"><button class="ib" title="Lên" data-act="wUp" ' + A + (idx === 0 ? ' disabled' : '') + '>' + ICON.up + '</button><button class="ib" title="Xuống" data-act="wDown" ' + A + (idx === n - 1 ? ' disabled' : '') + '>' + ICON.down + '</button><span class="grow"></span><button class="ib" title="Sửa" data-act="wEdit" ' + A + '>' + ICON.edit + '</button><button class="ib del" title="Xoá" data-act="wDel" ' + A + '>' + ICON.trash + '</button></div>' : '') + '</div>';
+    (teacher ? '<div class="wacts"><span class="small muted" style="align-self:center">Bắt đầu ' + fmtDate(x.start) + '</span><span class="grow"></span>' + (x.start <= today() ? '<button class="btn ghost sm" title="Cho hiện lại 7 ngày tính từ hôm nay" data-act="wRenew" ' + A + '>Gia hạn</button>' : '') + '<button class="ib" title="Sửa" data-act="wEdit" ' + A + '>' + ICON.edit + '</button><button class="ib del" title="Xoá" data-act="wDel" ' + A + '>' + ICON.trash + '</button></div>' : '') + '</div>';
 }
 async function saveWeek(ws, mutate) {
   const cur = clone((S.data.weekly || {})[weekId(ws)] || { weekStart: ws, items: [] });
@@ -650,48 +662,59 @@ async function saveWeek(ws, mutate) {
   if (!cur.items.length) { if ((S.data.weekly || {})[weekId(ws)]) await delDoc('weekly', weekId(ws)); else render(); return; }
   await saveDoc('weekly', weekId(ws), cur);
 }
+/* lưu 1 từ: từ nằm trong tài liệu của tuần chứa ngày bắt đầu (để học sinh không thấy trước từ lên lịch) */
+async function putWord(oldWs, n) {
+  const ws = mondayOf(n.start);
+  if (oldWs && oldWs !== ws) await saveWeek(oldWs, items => { const i = items.findIndex(x => x.id === n.id); if (i >= 0) items.splice(i, 1); });
+  await saveWeek(ws, items => { const i = items.findIndex(x => x.id === n.id); if (i >= 0) items[i] = n; else items.push(n); });
+}
 function wordModal(ws, iid) {
+  const w0 = ws ? (S.data.weekly || {})[weekId(ws)] : null;
   const it = iid ? weekItems(ws).find(x => x.id === iid) : { type: 'word' };
-  const m = openModal(mHead((iid ? 'Sửa' : 'Thêm') + ' · tuần ' + weekLabel(ws)) + '<form id="wf"><div class="mb">' +
+  const start0 = (iid && (it.start || (w0 && w0.weekStart))) || today();
+  const m = openModal(mHead(iid ? 'Sửa từ / cụm từ' : 'Thêm từ / cụm từ') + '<form id="wf"><div class="mb">' +
     '<div class="seg" style="margin-bottom:14px"><button type="button" data-ty="word" class="' + (it.type !== 'expr' ? 'on' : '') + '">Word (từ)</button><button type="button" data-ty="expr" class="' + (it.type === 'expr' ? 'on' : '') + '">Expression (cụm từ)</button></div>' +
     '<label class="f"><span>Từ / cụm từ tiếng Anh</span><input class="inp" name="text" required value="' + esc(it.text || '') + '" placeholder="VD: break the ice"></label>' +
     '<div class="f2"><label class="f"><span>Phiên âm (không bắt buộc)</span><input class="inp" name="ipa" value="' + esc(it.ipa || '') + '" placeholder="/breɪk ðə aɪs/"></label>' +
     '<label class="f"><span>Nghĩa tiếng Việt</span><input class="inp" name="meaning" value="' + esc(it.meaning || '') + '" placeholder="phá băng, làm quen"></label></div>' +
     '<label class="f"><span>Câu ví dụ</span><input class="inp" name="example" value="' + esc(it.example || '') + '" placeholder="He told a joke to break the ice."></label>' +
-    '<label class="f"><span>Từ loại</span><select class="inp" name="pos">' + '<option value=""' + (it.pos === '' ? ' selected' : '') + '>— Từ loại —</option>' + '<option value="noun (n.)"' + (it.pos === 'noun (n.)' ? ' selected' : '') + '>noun (n.)</option>' + '<option value="verb (v.)"' + (it.pos === 'verb (v.)' ? ' selected' : '') + '>verb (v.)</option>' + '<option value="adjective (adj.)"' + (it.pos === 'adjective (adj.)' ? ' selected' : '') + '>adjective (adj.)</option>' + '<option value="adverb (adv.)"' + (it.pos === 'adverb (adv.)' ? ' selected' : '') + '>adverb (adv.)</option>' + '<option value="phrasal verb"' + (it.pos === 'phrasal verb' ? ' selected' : '') + '>phrasal verb</option>' + '<option value="idiom"' + (it.pos === 'idiom' ? ' selected' : '') + '>idiom</option>' + '<option value="collocation"' + (it.pos === 'collocation' ? ' selected' : '') + '>collocation</option>' + '<option value="phrase"' + (it.pos === 'phrase' ? ' selected' : '') + '>phrase</option>' + '</select></label>' +
+    '<div class="f2"><label class="f"><span>Từ loại</span><select class="inp" name="pos">' + ['', 'noun (n.)', 'verb (v.)', 'adjective (adj.)', 'adverb (adv.)', 'phrasal verb', 'idiom', 'collocation', 'phrase'].map(p => '<option value="' + p + '"' + ((it.pos || '') === p ? ' selected' : '') + '>' + (p || '— Từ loại —') + '</option>').join('') + '</select></label>' +
+    '<label class="f"><span>Hiện từ ngày (hiện 7 ngày)</span><input class="inp" type="date" name="start" required value="' + start0 + '"></label></div>' +
+    '<div class="small muted" id="wEnd" style="margin:-6px 0 12px"></div>' +
     '<label class="f"><span>Thành phần (cấu tạo từ)</span><textarea class="inp" name="parts" rows="2" style="min-height:60px" placeholder="VD: break (phá vỡ) + the ice (lớp băng)\nhoặc: com- (cùng nhau) + mute (thay đổi, di chuyển)">' + esc(it.parts || '') + '</textarea></label>' +
     '<button type="button" class="btn sm" id="wTry">' + ICON.sound + 'Nghe thử</button>' +
     '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">' + (iid ? 'Lưu' : 'Thêm') + '</button></div></form>', { size: 'narrow' });
   let type = it.type === 'expr' ? 'expr' : 'word';
+  const si = m.querySelector('[name=start]'), endLbl = m.querySelector('#wEnd');
+  const showEnd = () => { endLbl.textContent = si.value ? 'Học sinh thấy từ ' + fmtDate(si.value) + ' đến hết ' + fmtDate(addDays(si.value, WORD_DAYS - 1)) + ', sau đó tự chuyển vào mục “Từ đã qua”.' : ''; };
+  si.oninput = showEnd; showEnd();
   m.querySelectorAll('[data-ty]').forEach(b => b.onclick = () => { type = b.dataset.ty; m.querySelectorAll('[data-ty]').forEach(x => x.classList.toggle('on', x === b)); });
   m.querySelector('#wTry').onclick = () => { const v = m.querySelector('[name=text]').value.trim(); if (v) speak(v); };
   m.querySelector('#wf').onsubmit = async e => {
     e.preventDefault(); const f = new FormData(e.target);
-    const n = { id: iid || uid('x'), type, text: String(f.get('text')).trim(), ipa: String(f.get('ipa') || '').trim(), meaning: String(f.get('meaning') || '').trim(), example: String(f.get('example') || '').trim(), pos: String(f.get('pos') || ''), parts: String(f.get('parts') || '').trim() };
+    const n = Object.assign({}, iid ? it : {}, { id: iid || uid('x'), type, text: String(f.get('text')).trim(), ipa: String(f.get('ipa') || '').trim(), meaning: String(f.get('meaning') || '').trim(), example: String(f.get('example') || '').trim(), pos: String(f.get('pos') || ''), parts: String(f.get('parts') || '').trim(), start: String(f.get('start') || today()) });
     if (!n.text) return; closeModal();
-    await saveWeek(ws, items => { const i = items.findIndex(x => x.id === n.id); if (i >= 0) items[i] = n; else items.push(n); });
+    await putWord(iid ? ws : null, n);
   };
 }
 function vWeekly() {
-  const cur = mondayOf(); const ws = S.wk || cur; const items = weekItems(ws);
-  const rel = ws === cur ? '<span class="tag s3">Tuần này · học sinh đang thấy</span>' : ws > cur ? '<span class="tag acc">Tuần sau · học sinh chưa thấy</span>' : '<span class="tag">Tuần trước · học sinh xem trong mục “Từ của tuần”</span>';
-  const prevItems = weekItems(addDays(ws, -7));
-  const all = Object.values(S.data.weekly || {}).filter(w => (w.items || []).length).sort((a, b) => b.weekStart.localeCompare(a.weekStart));
-  return '<div class="head"><div><h1>Từ vựng & cụm từ của tuần</h1><div class="sub">Tất cả học sinh đều thấy ở đầu trang của mình. Mỗi tuần (từ thứ Hai) một danh sách; bạn có thể soạn trước cho tuần sau.</div></div><button class="btn pri" data-act="wAdd" data-w="' + ws + '">' + ICON.plus + 'Thêm từ / cụm từ</button></div>' +
-    '<div class="wkbar"><button class="btn sm" data-act="wkNav" data-v="-7">' + ICON.left + '</button><span class="lbl">Tuần ' + weekLabel(ws) + '</span><button class="btn sm" data-act="wkNav" data-v="7">' + ICON.right + '</button>' + (ws !== cur ? '<button class="btn ghost sm" data-act="wkNav" data-v="0">Về tuần này</button>' : '') + rel + '</div>' +
-    (items.length ? '<div class="wgrid">' + items.map((it, i) => wordCard(it, true, ws, i, items.length)).join('') + '</div>'
-      : '<div class="card"><div class="empty"><h3>Tuần này chưa có từ nào</h3><p>Thêm 3–7 từ hoặc cụm từ, kèm nghĩa và câu ví dụ. Học sinh bấm 🔊 để nghe phát âm.</p><div class="row" style="justify-content:center;margin-top:12px"><button class="btn pri" data-act="wAdd" data-w="' + ws + '">' + ICON.plus + 'Thêm từ đầu tiên</button>' + (prevItems.length ? '<button class="btn" data-act="wCopyPrev" data-w="' + ws + '">Chép ' + prevItems.length + ' mục từ tuần trước</button>' : '') + '</div></div></div>') +
-    (all.length ? '<h3 style="margin:28px 0 10px">Các tuần đã soạn</h3><div class="card pad">' + all.map(w => '<div class="list-item"><b style="min-width:150px">' + weekLabel(w.weekStart) + '</b><div class="grow small muted" style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(w.items.map(x => x.text).join(' · ')) + '</div><span class="tag">' + w.items.length + ' mục</span><button class="btn sm" data-act="wkGo" data-w="' + w.weekStart + '">Mở</button></div>').join('') + '</div>' : '');
+  const act = activeWords(), up = upcomingWords(), old = expiredWords();
+  const grid = (list, title, sub) => list.length ? '<h3 style="margin:24px 0 4px">' + title + ' <span class="tag">' + list.length + '</span></h3>' + (sub ? '<div class="small muted" style="margin-bottom:10px">' + sub + '</div>' : '') + '<div class="wgrid">' + list.map(x => wordCard(x, true, true)).join('') + '</div>' : '';
+  return '<div class="head"><div><h1>Từ vựng & cụm từ của tuần</h1><div class="sub">Tất cả học sinh đều thấy ở đầu trang. Mỗi từ hiện <b>7 ngày</b> kể từ ngày bạn thêm (hoặc ngày bạn chọn), rồi tự hết hạn — các từ khác không bị ảnh hưởng.</div></div><button class="btn pri" data-act="wAdd">' + ICON.plus + 'Thêm từ / cụm từ</button></div>' +
+    (act.length ? grid(act, 'Học sinh đang thấy', 'Từ mới nhất ở trước. Bấm “Gia hạn” để cho một từ hiện thêm 7 ngày tính từ hôm nay.')
+      : '<div class="card" style="margin-top:16px"><div class="empty"><h3>Hiện chưa có từ nào đang hiện</h3><p>Thêm từ hoặc cụm từ, kèm nghĩa và câu ví dụ. Mỗi từ sẽ hiện cho học sinh trong 7 ngày.</p><div class="row" style="justify-content:center;margin-top:12px"><button class="btn pri" data-act="wAdd">' + ICON.plus + 'Thêm từ đầu tiên</button></div></div></div>') +
+    grid(up, 'Đã lên lịch', 'Học sinh chưa thấy cho đến ngày bắt đầu.') +
+    grid(old, 'Đã hết hạn', 'Học sinh vẫn xem lại được trong mục “Từ của tuần” → Từ đã qua.');
 }
 function weeklyHero() {
-  const vw = visibleWeeks(); if (!vw.length) return '';
-  const w = vw[0]; const isCur = w.weekStart === mondayOf();
-  return '<div class="wkhero"><h3>' + ICON.spark + 'Words & Expressions of the week <span class="small" style="font-family:&quot;Be Vietnam Pro&quot;,sans-serif;font-weight:400;color:var(--muted)">· ' + (isCur ? 'tuần này' : 'tuần ' + weekLabel(w.weekStart)) + '</span></h3><div class="wgrid">' + w.items.map(it => wordCard(it, false)).join('') + '</div></div>';
+  const act = activeWords(); if (!act.length) return '';
+  return '<div class="wkhero"><h3>' + ICON.spark + 'Words & Expressions of the week</h3><div class="wgrid">' + act.map(x => wordCard(x, false, true)).join('') + '</div></div>';
 }
 function weeklyTab() {
-  const vw = visibleWeeks();
-  if (!vw.length) return '<div class="card"><div class="empty"><h3>Chưa có từ của tuần</h3><p>Giáo viên sẽ cập nhật từ vựng và cụm từ mới mỗi tuần.</p></div></div>';
-  return vw.map((w, i) => '<h3 style="margin:' + (i ? '24px' : '0') + ' 0 10px">' + (w.weekStart === mondayOf() ? 'Tuần này · ' : 'Tuần ') + weekLabel(w.weekStart) + '</h3><div class="wgrid">' + w.items.map(it => wordCard(it, false)).join('') + '</div>').join('');
+  const act = activeWords(), old = expiredWords();
+  if (!act.length && !old.length) return '<div class="card"><div class="empty"><h3>Chưa có từ của tuần</h3><p>Giáo viên sẽ cập nhật từ vựng và cụm từ mới thường xuyên.</p></div></div>';
+  return (act.length ? '<h3 style="margin:0 0 10px">Đang học</h3><div class="wgrid">' + act.map(x => wordCard(x, false, true)).join('') + '</div>' : '') +
+    (old.length ? '<h3 style="margin:' + (act.length ? '28px' : '0') + ' 0 10px">Từ đã qua</h3><div class="wgrid">' + old.map(x => wordCard(x, false, true)).join('') + '</div>' : '');
 }
 
 /* ============ dictation scoring ============ */
@@ -1459,13 +1482,10 @@ document.addEventListener('click', async e => {
     case 'skfilter': S.skillFilter = el.dataset.v; render(); break;
     case 'modRename': moduleModal(col, id, mid); break;
     case 'speak': speak(el.dataset.t || ''); break;
-    case 'wkNav': { const v = +el.dataset.v; S.wk = v === 0 ? null : addDays(S.wk || mondayOf(), v); render(); break; }
-    case 'wkGo': S.wk = el.dataset.w; render(); window.scrollTo(0, 0); break;
-    case 'wAdd': wordModal(el.dataset.w, null); break;
+    case 'wAdd': wordModal(null, null); break;
     case 'wEdit': wordModal(el.dataset.w, el.dataset.i); break;
-    case 'wDel': { const it = weekItems(el.dataset.w).find(x => x.id === el.dataset.i); if (await confirmBox('Xoá “' + it.text + '” khỏi tuần này?')) await saveWeek(el.dataset.w, items => items.splice(items.findIndex(x => x.id === el.dataset.i), 1)); break; }
-    case 'wUp': case 'wDown': await saveWeek(el.dataset.w, items => { const i = items.findIndex(x => x.id === el.dataset.i), j = i + (a === 'wUp' ? -1 : 1); if (j >= 0 && j < items.length) [items[i], items[j]] = [items[j], items[i]]; }); break;
-    case 'wCopyPrev': { const ws = el.dataset.w; const prev = weekItems(addDays(ws, -7)); await saveWeek(ws, items => prev.forEach(x => items.push(Object.assign({}, x, { id: uid('x') })))); toast('Đã chép từ tuần trước, bạn sửa lại cho tuần này nhé.'); break; }
+    case 'wDel': { const it = weekItems(el.dataset.w).find(x => x.id === el.dataset.i); if (it && await confirmBox('Xoá “' + it.text + '”?')) await saveWeek(el.dataset.w, items => items.splice(items.findIndex(x => x.id === el.dataset.i), 1)); break; }
+    case 'wRenew': { const it = weekItems(el.dataset.w).find(x => x.id === el.dataset.i); if (it) { await putWord(el.dataset.w, Object.assign({}, it, { start: today() })); toast('“' + it.text + '” sẽ hiện đến hết ' + fmtDate(addDays(today(), WORD_DAYS - 1)) + '.'); } break; }
     case 'togglePlan': S.openPlans[mid] = !S.openPlans[mid]; if (S.openPlans[mid] && !planText(mid)) { planModal(col, id, mid); } render(); break;
     case 'editPlan': planModal(col, id, mid); break;
     case 'modDel': { const m = ownerDoc(col, id).modules.find(x => x.id === mid); if (await confirmBox('Xoá chương “' + m.title + '” và ' + (m.topics || []).length + ' chủ đề bên trong?')) { await saveModules(col, id, ms => { ms.splice(ms.findIndex(x => x.id === mid), 1); }); if ((S.data.plans || {})[mid]) await delDoc('plans', mid); } break; }

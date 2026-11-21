@@ -45,6 +45,12 @@ language sql stable security definer set search_path = public as $$
   limit 1;
 $$;
 
+create or replace function public._lesson_visible(d jsonb, sid text) returns boolean
+language sql immutable as $$
+  select case when jsonb_typeof(d->'studentIds') = 'array' and jsonb_array_length(d->'studentIds') > 0
+              then (d->'studentIds') ? sid else true end
+$$;
+
 create or replace function public.student_bundle(p_code text) returns jsonb
 language plpgsql volatile security definer set search_path = public as $$
 declare sid text;
@@ -60,8 +66,22 @@ begin
                   join public.docs t on t.col = 'tasks' and t.id = s.id and t.data->>'studentId' = sid
                   where s.col = 'subs'), '{}'::jsonb),
     'weekly',   coalesce((select jsonb_object_agg(id, data) from public.docs
-                  where col = 'weekly' and data->>'weekStart' <= to_char((now() at time zone 'Asia/Bangkok')::date, 'YYYY-MM-DD')), '{}'::jsonb)
+                  where col = 'weekly' and data->>'weekStart' <= to_char((now() at time zone 'Asia/Bangkok')::date, 'YYYY-MM-DD')), '{}'::jsonb),
+    'lessons',  coalesce((select jsonb_object_agg(id, (data - 'pages') || jsonb_build_object('pageCount', case when jsonb_typeof(data->'pages') = 'array' then jsonb_array_length(data->'pages') else 0 end))
+                  from public.docs where col = 'lessons' and public._lesson_visible(data, sid)), '{}'::jsonb)
   );
+end $$;
+
+create or replace function public.student_lesson(p_code text, p_id text, p_since timestamptz default null) returns jsonb
+language plpgsql volatile security definer set search_path = public as $$
+declare sid text; r record;
+begin
+  sid := public._student_id(p_code);
+  if sid is null then perform pg_sleep(0.6); return null; end if;
+  select data, updated_at into r from public.docs where col = 'lessons' and id = p_id and public._lesson_visible(data, sid);
+  if not found then return null; end if;
+  if p_since is not null and r.updated_at <= p_since then return jsonb_build_object('u', r.updated_at); end if;
+  return jsonb_build_object('u', r.updated_at, 'data', r.data);
 end $$;
 
 create or replace function public.student_submit(p_code text, p_task text, p_text text, p_score int) returns boolean
@@ -113,6 +133,7 @@ revoke all on function public.is_teacher() from public, anon;
 grant execute on function public.is_teacher() to authenticated;
 grant execute on function public.claim_teacher() to authenticated;
 grant execute on function public.student_bundle(text) to anon, authenticated;
+grant execute on function public.student_lesson(text, text, timestamptz) to anon, authenticated;
 grant execute on function public.student_submit(text, text, text, int) to anon, authenticated;
 grant execute on function public.student_note_save(text, text, jsonb) to anon, authenticated;
 grant execute on function public.student_note_delete(text, text) to anon, authenticated;

@@ -233,6 +233,32 @@ label.f>small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
 .wtype.expr{background:var(--accent-soft);color:var(--accent)}
 .spk{border:0;background:var(--line2);border-radius:99px;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;color:var(--ink);flex:none}
 .spk:hover{background:var(--teal);color:#fff}
+.board{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.btool{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:7px 10px;border-bottom:1px solid var(--line2);background:#fbfaf7}
+.bgrp{display:flex;align-items:center;gap:2px;padding-right:6px;margin-right:2px;border-right:1px solid var(--line2)}
+.bb{border:0;background:none;width:32px;height:32px;border-radius:8px;display:inline-grid;place-items:center;cursor:pointer;color:#4a4f56}
+.bb:hover{background:var(--line2)}.bb.on{background:var(--ink);color:#fff}.bb:disabled{opacity:.35;cursor:default;background:none}
+.bdot{display:block;border-radius:50%;background:currentColor}
+.bsw{width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:var(--c);box-shadow:0 0 0 1px var(--line);cursor:pointer;margin:0 2px}
+.bsw.on{box-shadow:0 0 0 2px var(--ink)}
+.bpl{font-size:13px;font-weight:600;min-width:74px;text-align:center}
+.bwrap{position:relative;aspect-ratio:16/10;width:100%;background:#fff}
+.bwrap canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+.btext{position:absolute;min-width:160px;border:1.5px dashed var(--accent);background:rgba(255,255,255,.85);outline:0;resize:none;overflow:hidden;font-family:"Be Vietnam Pro",system-ui,sans-serif;font-weight:500;padding:0 4px;margin:-2px 0 0 -5px;white-space:pre}
+.board.full{position:fixed;inset:0;z-index:900;border-radius:0;border:0;display:flex;flex-direction:column;background:#eceae5}
+.board.full .bwrap{width:min(100vw,calc((100vh - 52px)*1.6));margin:auto;flex:none}
+body.bfull{overflow:hidden}
+.live{color:#dc2626;font-weight:600}
+.lhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.lhead .lttl{flex:1;min-width:200px;font-family:"Noto Serif",serif;font-size:20px;font-weight:700}
+.lstu{margin-bottom:12px;gap:6px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.ltext{min-height:200px;width:100%;line-height:1.6}
+.ltextv{line-height:1.7;font-size:15px;user-select:text}
+.lban{display:flex;align-items:center;gap:10px;background:#fff1f0;border:1px solid #f6c9c4;border-radius:var(--radius);padding:12px 16px;margin-bottom:16px}
+.lpick{gap:6px;margin-bottom:10px}
+@media (max-width:640px){.bgrp{border-right:0;padding-right:0}.bb{width:32px;height:32px}}
 .wkhero{background:linear-gradient(135deg,#fff7ec,#fdf0e6);border:1px solid #f0d8c4;border-radius:var(--radius);padding:16px 18px;margin-bottom:22px}
 .wkhero h3{display:flex;align-items:center;gap:8px;color:var(--accent);margin-bottom:12px}
 .wkhero .wgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
@@ -349,6 +375,14 @@ const skillOf = k => SKILLS.find(x => x.k === k) || null;
 const skVars = k => { const x = skillOf(k); return x ? '--skc:' + x.color + ';--skbg:' + x.bg : '--skc:#6b6f76;--skbg:#eeece7'; };
 function skChip(k) { const x = skillOf(k); return '<span class="skchip" style="' + skVars(k) + '">' + esc(x ? x.label : 'Chưa gắn kỹ năng') + '</span>'; }
 const ICON = {
+  board: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8M7 9l3 3 4-5"/></svg>',
+  pen: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  hl: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>',
+  text: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>',
+  eraser: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3a1 1 0 0 1 0-1.4l10-10a1 1 0 0 1 1.4 0l5.6 5.6a1 1 0 0 1 0 1.4L13 21"/><path d="M22 21H7M5 11l9 9"/></svg>',
+  undo: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+  full: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
+  dl: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>',
   spark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>',
   sound: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>',
   left: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
@@ -376,10 +410,10 @@ const ICON = {
 };
 
 /* ============ state ============ */
-const COLS = ['students', 'tasks', 'sessions', 'subs', 'templates', 'notes', 'plans', 'weekly'];
+const COLS = ['students', 'tasks', 'sessions', 'subs', 'templates', 'notes', 'plans', 'weekly', 'lessons'];
 const S = {
   mode: 'loading', role: null, db: null, user: null, assets: null, canWrite: true,
-  data: { students: {}, tasks: {}, sessions: {}, subs: {}, templates: {}, notes: {}, plans: {}, weekly: {} }, openPlans: {}, wk: null,
+  data: { students: {}, tasks: {}, sessions: {}, subs: {}, templates: {}, notes: {}, plans: {}, weekly: {}, lessons: {} }, openPlans: {}, wk: null, lessonId: null, lessonOpen: null, lessonFull: {},
   noteOpen: null, noteDraft: null, noteStatus: '', noteQ: '', notesLocalOnly: false,
   loadedCols: {}, stale: false, banner: '',
   view: 'overview', sid: null, tab: 'roadmap', taskFilter: 'all', tplId: null,
@@ -467,7 +501,7 @@ async function enterTeacher() {
   sb.channel('docs-' + uid()).on('postgres_changes', { event: '*', schema: 'public', table: 'docs' }, p => {
     if (p.eventType === 'DELETE') { const o = p.old || {}; if (S.data[o.col]) { const c = Object.assign({}, S.data[o.col]); delete c[o.id]; S.data[o.col] = c; } }
     else { const n = p.new || {}; if (S.data[n.col]) S.data[n.col] = Object.assign({}, S.data[n.col], { [n.id]: n.data }); }
-    render();
+    reapplyLessonLocal(); render();
   }).subscribe();
   afterLoad(true);
   return true;
@@ -476,7 +510,7 @@ async function loadAllDocs() {
   const all = []; let from = 0;
   for (;;) { const { data, error } = await sb.from('docs').select('col,id,data').range(from, from + 999); if (error) throw error; all.push(...data); if (data.length < 1000) break; from += 1000; }
   const d = {}; COLS.forEach(c => d[c] = {}); all.forEach(r => { if (d[r.col]) d[r.col][r.id] = r.data; });
-  COLS.forEach(c => S.data[c] = d[c]); S.stale = false;
+  COLS.forEach(c => S.data[c] = d[c]); S.stale = false; reapplyLessonLocal();
 }
 function enterStudent() {
   S.mode = 'cloud'; S.role = 'student'; S.canWrite = true;
@@ -569,6 +603,7 @@ async function flushNote() {
   clearTimeout(noteTimer); noteTimer = null;
   const d = S.noteDraft; if (!d || S.noteStatus !== 'dirty') return;
   const body = { studentId: d.studentId, date: d.date, title: d.title || '', body: d.body || '', skill: d.skill || '', by: d.by || 'student', createdAt: d.createdAt, updatedAt: new Date().toISOString() };
+  if (d.lessonId) body.lessonId = d.lessonId;
   S.noteStatus = 'saving'; paintNoteStatus();
   if (notesCloudOK()) {
     const had = !!(S.data.notes || {})[d.id];
@@ -618,6 +653,236 @@ function tNotes(s) {
   return '<div class="row" style="margin-bottom:12px"><div class="grow muted">Ghi chú học sinh tự viết trên lớp. ' + (S.mode === 'cloud' ? 'Ghi chú em lưu trên máy riêng (khi chỉ có quyền xem) sẽ không hiện ở đây.' : '') + '</div><button class="btn" data-act="preview" data-id="' + s.id + '" data-v="notes">' + ICON.edit + 'Mở sổ ghi chú của em</button></div>' +
     (ns.length ? ns.map(n => '<div class="card tnote"><div class="row" style="justify-content:space-between;margin-bottom:6px"><div class="row"><b>' + fmtDate(n.date) + '</b>' + (SKILL_KEYS.includes(n.skill) ? skChip(n.skill) : '') + (n.by === 'teacher' ? '<span class="tag">Giáo viên ghi</span>' : '') + '</div><span class="small muted">sửa lần cuối ' + fmtDate(n.updatedAt) + '</span></div><h3 style="margin-bottom:6px">' + esc(n.title || 'Không tiêu đề') + '</h3><div class="pre">' + esc(n.body || '') + '</div></div>').join('')
       : '<div class="card"><div class="empty"><h3>Chưa có ghi chú</h3><p>Khi học sinh ghi chú ở tab “Ghi chú” trên trang của em, nội dung sẽ hiện ở đây.</p></div></div>');
+}
+
+/* ============ bài giảng: bảng trắng + ghi chú chữ ============ */
+const BW = 1600, BH = 1000;
+const B_COLORS = ['#1f2328', '#1d4ed8', '#dc2626', '#15803d', '#ea580c', '#7c3aed'];
+const B_SIZES = { pen: [3, 6, 12], hl: [18, 30, 48], text: [30, 44, 64], eraser: [12, 24, 48] };
+const lessonLocal = {};   // giáo viên: bản đang soạn, ưu tiên hơn dữ liệu đồng bộ về
+const boardCache = {};
+const lessonTimers = {};
+function lessonList() { return Object.entries(S.data.lessons || {}).map(([id, l]) => Object.assign({}, l, { id })).sort((a, b) => (b.date || '').localeCompare(a.date || '') || (b.createdAt || '').localeCompare(a.createdAt || '')); }
+function lessonsFor(sid) { return lessonList().filter(l => !(l.studentIds || []).length || l.studentIds.includes(sid)); }
+function lessonData(id) {
+  if (lessonLocal[id]) return lessonLocal[id];
+  if (S.role === 'student') return S.lessonFull[id] ? S.lessonFull[id].data : null;
+  return (S.data.lessons || {})[id] || null;
+}
+function reapplyLessonLocal() { const ids = Object.keys(lessonLocal); if (!ids.length) return; const c = Object.assign({}, S.data.lessons); ids.forEach(id => c[id] = lessonLocal[id]); S.data.lessons = c; }
+function editLesson(id) { if (!lessonLocal[id] && S.data.lessons[id]) lessonLocal[id] = clone(S.data.lessons[id]); return lessonLocal[id]; }
+function lessonStatus(id, txt) { $$('.board[data-lesson="' + id + '"] .bstat').forEach(e => e.textContent = txt); }
+function saveLesson(id, now) {
+  const l = lessonLocal[id]; if (!l) return;
+  l.updatedAt = new Date().toISOString(); lessonStatus(id, 'Đang lưu…');
+  clearTimeout(lessonTimers[id]);
+  const run = async () => { lessonTimers[id] = null; const ok = await saveDoc('lessons', id, lessonLocal[id], true); if (!lessonTimers[id]) lessonStatus(id, ok ? 'Đã lưu' : 'Chưa lưu được, thử lại…'); if (!ok) lessonTimers[id] = setTimeout(() => saveLesson(id, true), 4000); };
+  if (now) run(); else lessonTimers[id] = setTimeout(run, 600);
+}
+function flushLessons() { Object.keys(lessonTimers).forEach(id => { if (lessonTimers[id]) saveLesson(id, true); }); }
+async function newLesson() {
+  const t = today(), id = uid('l');
+  const l = { title: 'Bài giảng ' + fmtDateShort(t), date: t, studentIds: [], text: '', pages: [{ s: [] }], cur: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  lessonLocal[id] = l; await saveDoc('lessons', id, l); go('lesson', { lessonId: id });
+}
+function hitStroke(ctx, s, x, y, r) {
+  if (s.t === 'x') { ctx.font = bFont(s.z); const lines = String(s.v).split('\n'); const w = Math.max(...lines.map(l => ctx.measureText(l).width)); return x >= s.x - r && x <= s.x + w + r && y >= s.y - r && y <= s.y + lines.length * s.z * 1.25 + r; }
+  const p = s.p, rr = r + s.w / 2;
+  if (p.length === 2) return Math.hypot(p[0] - x, p[1] - y) <= rr;
+  for (let i = 0; i < p.length - 2; i += 2) {
+    const ax = p[i], ay = p[i + 1], bx = p[i + 2], by = p[i + 3], dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy;
+    const t = L ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / L)) : 0;
+    if (Math.hypot(ax + t * dx - x, ay + t * dy - y) <= rr) return true;
+  }
+  return false;
+}
+const bFont = z => '500 ' + z + 'px "Be Vietnam Pro", system-ui, sans-serif';
+function drawStroke(ctx, s) {
+  if (s.t === 'x') { ctx.fillStyle = s.c; ctx.font = bFont(s.z); ctx.textBaseline = 'top'; String(s.v).split('\n').forEach((ln, i) => ctx.fillText(ln, s.x, s.y + i * s.z * 1.25)); return; }
+  const p = s.p; if (!p || p.length < 2) return;
+  ctx.save(); ctx.strokeStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  if (s.t === 'h') ctx.globalAlpha = 0.32;
+  ctx.beginPath(); ctx.moveTo(p[0], p[1]);
+  if (p.length === 2) ctx.lineTo(p[0] + 0.1, p[1]);
+  else { for (let i = 2; i < p.length - 2; i += 2) ctx.quadraticCurveTo(p[i], p[i + 1], (p[i] + p[i + 2]) / 2, (p[i + 1] + p[i + 3]) / 2); ctx.lineTo(p[p.length - 2], p[p.length - 1]); }
+  ctx.stroke(); ctx.restore();
+}
+function paintPage(ctx, strokes, grid) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, BW, BH);
+  if (grid) { ctx.fillStyle = '#e4e1da'; for (let x = 40; x < BW; x += 40) for (let y = 40; y < BH; y += 40) ctx.fillRect(x - 1.5, y - 1.5, 3, 3); }
+  (strokes || []).forEach(s => drawStroke(ctx, s));
+}
+async function downloadLesson(id) {
+  const l = lessonData(id); if (!l) return;
+  const pages = (l.pages && l.pages.length) ? l.pages : [{ s: [] }]; const gap = 24;
+  const c = document.createElement('canvas'); c.width = BW; c.height = pages.length * BH + (pages.length - 1) * gap;
+  const x = c.getContext('2d'); x.fillStyle = '#d8d4cc'; x.fillRect(0, 0, c.width, c.height);
+  const one = document.createElement('canvas'); one.width = BW; one.height = BH; const ox = one.getContext('2d');
+  pages.forEach((p, i) => { paintPage(ox, p.s, false); x.drawImage(one, 0, i * (BH + gap)); });
+  c.toBlob(b => { if (!b) return; const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'bai-giang-' + (l.date || today()) + '.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }, 'image/png');
+}
+function boardFull(el, on) {
+  el.classList.toggle('full', on); document.body.classList.toggle('bfull', on);
+  try { if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => { }); if (!on && document.fullscreenElement) document.exitFullscreen().catch(() => { }); } catch (e) { }
+  el.refresh();
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) $$('.board.full').forEach(b => { b.classList.remove('full'); document.body.classList.remove('bfull'); b.refresh(); }); });
+function buildBoard(id, editable) {
+  const el = document.createElement('div'); el.className = 'board' + (editable ? ' edit' : ''); el.dataset.lesson = id;
+  const st = { tool: 'pen', color: B_COLORS[0], size: 1, page: (lessonData(id) || {}).cur || 0, follow: true, undo: [], cur: null, erasing: false };
+  const tb = (b, title, html, cls) => '<button type="button" class="bb ' + (cls || '') + '" data-b="' + b + '" title="' + title + '">' + html + '</button>';
+  el.innerHTML = '<div class="btool">' +
+    (editable ? '<div class="bgrp">' + tb('t:pen', 'Bút', ICON.pen) + tb('t:hl', 'Bút dạ quang', ICON.hl) + tb('t:text', 'Gõ chữ lên bảng', ICON.text) + tb('t:eraser', 'Tẩy (xoá nét chạm vào)', ICON.eraser) + '</div>' +
+      '<div class="bgrp">' + B_COLORS.map(c => '<button type="button" class="bsw" data-b="c:' + c + '" title="Màu" style="--c:' + c + '"></button>').join('') + '</div>' +
+      '<div class="bgrp">' + [0, 1, 2].map(i => tb('s:' + i, ['Nhỏ', 'Vừa', 'To'][i], '<i class="bdot" style="width:' + (5 + i * 5) + 'px;height:' + (5 + i * 5) + 'px"></i>')).join('') + '</div>' +
+      '<div class="bgrp">' + tb('undo', 'Hoàn tác (Ctrl+Z)', ICON.undo) + tb('clear', 'Xoá trắng trang này', ICON.trash) + '</div>' : '') +
+    '<div class="bgrp bpg">' + tb('prev', 'Trang trước', ICON.left) + '<span class="bpl"></span>' + tb('next', 'Trang sau', ICON.right) + (editable ? tb('add', 'Thêm trang mới', ICON.plus) : '') + '</div>' +
+    (!editable ? '<button type="button" class="btn sm bfol" data-b="follow" hidden>Theo trang của giáo viên</button>' : '') +
+    '<span class="grow"></span><span class="small muted bstat"></span>' +
+    tb('dl', 'Tải cả bài về (ảnh PNG)', ICON.dl) + tb('full', 'Toàn màn hình', ICON.full) +
+    '</div><div class="bwrap"><canvas width="' + BW + '" height="' + BH + '"></canvas><textarea class="btext" rows="1" hidden></textarea></div>';
+  const cv = el.querySelector('canvas'), ctx = cv.getContext('2d'), ta = el.querySelector('.btext');
+  const snap = document.createElement('canvas'); snap.width = BW; snap.height = BH; const sctx = snap.getContext('2d');
+  const L = () => lessonData(id);
+  const pages = () => { const l = L(); return (l && l.pages && l.pages.length) ? l.pages : [{ s: [] }]; };
+  const pageIdx = () => { const n = pages().length; const p = (editable || !st.follow) ? st.page : ((L() || {}).cur || 0); return Math.max(0, Math.min(n - 1, p)); };
+  const strokes = () => (pages()[pageIdx()] || {}).s || [];
+  function wpage() { const l = editLesson(id); if (!l.pages || !l.pages.length) l.pages = [{ s: [] }]; return l.pages[pageIdx()]; }
+  function pushUndo() { st.undo.push({ p: pageIdx(), s: JSON.stringify(strokes()) }); if (st.undo.length > 60) st.undo.shift(); }
+  function paint() { paintPage(ctx, strokes(), true); if (st.cur) drawStroke(ctx, st.cur); }
+  function bar() {
+    const n = pages().length, i = pageIdx();
+    el.querySelector('.bpl').textContent = 'Trang ' + (i + 1) + '/' + n;
+    el.querySelector('[data-b=prev]').disabled = i === 0; el.querySelector('[data-b=next]').disabled = i >= n - 1;
+    el.querySelectorAll('[data-b^="t:"]').forEach(b => b.classList.toggle('on', b.dataset.b === 't:' + st.tool));
+    el.querySelectorAll('[data-b^="c:"]').forEach(b => b.classList.toggle('on', b.dataset.b === 'c:' + st.color));
+    el.querySelectorAll('[data-b^="s:"]').forEach(b => b.classList.toggle('on', b.dataset.b === 's:' + st.size));
+    const u = el.querySelector('[data-b=undo]'); if (u) u.disabled = !st.undo.length;
+    const f = el.querySelector('[data-b=follow]'); if (f) f.hidden = st.follow;
+    cv.style.cursor = !editable ? 'default' : st.tool === 'text' ? 'text' : st.tool === 'eraser' ? 'cell' : 'crosshair';
+    if (!editable) { const live = (L() || {}).date === today(); const s = el.querySelector('.bstat'); if (s && !s.dataset.fixed) s.innerHTML = live ? '<span class="live">● Trực tiếp</span>' : ''; }
+  }
+  el.refresh = () => { if (!st.cur && !st.erasing) paint(); bar(); };
+  function setPage(i) { const n = pages().length; i = Math.max(0, Math.min(n - 1, i)); if (editable) { st.page = i; const l = editLesson(id); l.cur = i; saveLesson(id); } else { st.page = i; st.follow = i === ((L() || {}).cur || 0); } el.refresh(); }
+  function undo() { const u = st.undo.pop(); if (!u) return; const l = editLesson(id); if (l.pages[u.p]) { l.pages[u.p].s = JSON.parse(u.s); st.page = u.p; saveLesson(id); } el.refresh(); }
+  el.querySelector('.btool').addEventListener('click', e => {
+    const b = e.target.closest('[data-b]'); if (!b) return; const v = b.dataset.b;
+    if (v.startsWith('t:')) st.tool = v.slice(2);
+    else if (v.startsWith('c:')) { st.color = v.slice(2); if (st.tool === 'eraser') st.tool = 'pen'; }
+    else if (v.startsWith('s:')) st.size = +v.slice(2);
+    else if (v === 'prev') return setPage(pageIdx() - 1);
+    else if (v === 'next') return setPage(pageIdx() + 1);
+    else if (v === 'add') { const l = editLesson(id); if (!l.pages || !l.pages.length) l.pages = [{ s: [] }]; l.pages.push({ s: [] }); return setPage(l.pages.length - 1); }
+    else if (v === 'undo') return undo();
+    else if (v === 'clear') { if (!strokes().length) return; pushUndo(); wpage().s = []; saveLesson(id); toast('Đã xoá trang. Bấm Hoàn tác nếu xoá nhầm.'); }
+    else if (v === 'follow') { st.follow = true; }
+    else if (v === 'dl') return downloadLesson(id);
+    else if (v === 'full') return boardFull(el, !el.classList.contains('full'));
+    el.refresh();
+  });
+  if (!editable) return el;
+  const pos = e => { const r = cv.getBoundingClientRect(); return [Math.round((e.clientX - r.left) / r.width * BW), Math.round((e.clientY - r.top) / r.height * BH)]; };
+  const width = () => B_SIZES[st.tool][st.size];
+  function eraseAt(x, y) { const pg = wpage(); const n = pg.s.length; pg.s = pg.s.filter(s => !hitStroke(ctx, s, x, y, width())); if (pg.s.length !== n) { st.erased = true; paint(); } }
+  function commitText() {
+    if (ta.hidden) return; const v = ta.value.replace(/\s+$/, ''); ta.hidden = true;
+    if (v.trim()) { pushUndo(); wpage().s.push({ t: 'x', c: ta.dataset.c, z: +ta.dataset.z, x: +ta.dataset.x, y: +ta.dataset.y, v }); saveLesson(id); }
+    ta.value = ''; el.refresh();
+  }
+  function placeText(e) {
+    if (!ta.hidden) { commitText(); return; }
+    const [x, y] = pos(e); const z = width(); const r = cv.getBoundingClientRect(), k = r.width / BW;
+    Object.assign(ta.dataset, { x, y, z, c: st.color });
+    Object.assign(ta.style, { left: (x / BW * 100) + '%', top: (y / BH * 100) + '%', fontSize: (z * k) + 'px', color: st.color, lineHeight: '1.25' });
+    ta.hidden = false; ta.value = ''; ta.style.height = 'auto'; ta.focus(); setTimeout(() => { if (!ta.hidden && document.activeElement !== ta) ta.focus(); }, 0);
+  }
+  ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitText(); } else if (e.key === 'Escape') { ta.value = ''; commitText(); } });
+  ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; ta.style.width = 'auto'; });
+  ta.addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== ta) commitText(); }, 0));
+  cv.addEventListener('pointerdown', e => {
+    if (e.button > 0) return;
+    if (st.tool === 'text') { e.preventDefault(); placeText(e); return; }
+    if (!ta.hidden) commitText();
+    e.preventDefault(); const [x, y] = pos(e); st.pid = e.pointerId;
+    if (st.tool === 'eraser') { pushUndo(); st.erasing = true; st.erased = false; eraseAt(x, y); return; }
+    paintPage(sctx, strokes(), true);
+    st.cur = { t: st.tool === 'hl' ? 'h' : 'p', c: st.color, w: width(), p: [x, y] }; paint();
+  });
+  const move = e => {
+    if (e.pointerId !== st.pid) return;
+    if (st.erasing) { const [x, y] = pos(e); eraseAt(x, y); return; }
+    if (!st.cur) return;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+    (evs.length ? evs : [e]).forEach(ev => { const [x, y] = pos(ev), p = st.cur.p; if (Math.hypot(x - p[p.length - 2], y - p[p.length - 1]) >= 2) p.push(x, y); });
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(snap, 0, 0); drawStroke(ctx, st.cur);
+  };
+  const up = e => {
+    if (e.pointerId !== st.pid) return; st.pid = null;
+    if (st.erasing) { st.erasing = false; if (st.erased) saveLesson(id); else st.undo.pop(); el.refresh(); return; }
+    if (!st.cur) return; pushUndo(); wpage().s.push(st.cur); st.cur = null; saveLesson(id); el.refresh();
+  };
+  window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+  window.addEventListener('keydown', e => { if (!el.isConnected || !(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return; const t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return; e.preventDefault(); undo(); });
+  return el;
+}
+function boardSlot(id, editable) { return '<div class="bslot" data-board-slot="' + id + '" data-edit="' + (editable ? 1 : 0) + '"></div>'; }
+function lessonStudentsLabel(l) { const ids = l.studentIds || []; if (!ids.length) return 'Tất cả học sinh'; return ids.map(i => (S.data.students[i] || {}).name).filter(Boolean).join(', ') || 'Chưa chọn học sinh'; }
+function vLessons() {
+  const ls = lessonList(); const td = ls.find(l => l.date === today());
+  return '<div class="head"><div><h1>Bài giảng</h1><div class="sub">Viết và vẽ trên bảng trắng trong lúc dạy qua Zoom. Học sinh mở trang của mình, vào tab “Bài giảng” là thấy bảng cập nhật sau vài giây, chép chữ và tải ảnh bảng về.</div></div>' +
+    '<div class="row">' + (td ? '<button class="btn" data-act="lNew">' + ICON.plus + 'Bài mới</button><button class="btn pri" data-act="lOpen" data-id="' + td.id + '">' + ICON.board + 'Mở bài giảng hôm nay</button>' : '<button class="btn pri" data-act="lNew">' + ICON.board + 'Bắt đầu bài giảng hôm nay</button>') + '</div></div>' +
+    (ls.length ? '<div class="card pad">' + ls.map(l => '<div class="list-item"><b style="min-width:92px">' + fmtDate(l.date) + '</b><div class="grow" style="min-width:0"><div style="font-weight:600">' + esc(l.title || 'Bài giảng') + (l.date === today() ? ' <span class="tag s3">Hôm nay</span>' : '') + '</div><div class="small muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(lessonStudentsLabel(l)) + ' · ' + ((l.pages || []).length || 1) + ' trang bảng' + (l.text ? ' · ' + esc(l.text.slice(0, 80)) : '') + '</div></div><button class="btn sm" data-act="lOpen" data-id="' + l.id + '">Mở</button></div>').join('') + '</div>'
+      : '<div class="card"><div class="empty"><h3>Chưa có bài giảng nào</h3><p>Bấm “Bắt đầu bài giảng hôm nay” trước giờ học, chia sẻ màn hình tab này trên Zoom rồi viết lên bảng.</p></div></div>');
+}
+function vLesson(id) {
+  const l = editLesson(id); if (!l) return vLessons();
+  const studs = activeStudents(); const ids = l.studentIds || [];
+  return '<div class="lhead"><button class="btn sm" data-act="nav" data-v="lessons">' + ICON.left + 'Tất cả bài giảng</button>' +
+    '<input class="inp lttl" data-lf="title" data-k="l-title-' + id + '" value="' + esc(l.title || '') + '" placeholder="Tên bài giảng">' +
+    '<input class="inp" type="date" data-lf="date" value="' + esc(l.date || today()) + '" style="width:auto">' +
+    '<button class="ib del" title="Xoá bài giảng" data-act="lDel" data-id="' + id + '">' + ICON.trash + '</button></div>' +
+    '<div class="row lstu"><span class="small muted">Học sinh xem được:</span><button class="chip ' + (!ids.length ? 'on' : '') + '" data-act="lStu" data-id="' + id + '" data-v="">Tất cả</button>' +
+    studs.map(s => '<button class="chip ' + (ids.includes(s.id) ? 'on' : '') + '" data-act="lStu" data-id="' + id + '" data-v="' + s.id + '"><span class="dot" style="background:' + esc(s.color) + '"></span>' + esc(s.name) + '</button>').join('') + '</div>' +
+    boardSlot(id, true) +
+    '<div class="card pad" style="margin-top:16px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Ghi chú chữ cho học sinh chép</h3><span class="small muted">Tự lưu · học sinh bấm được “Lưu vào Ghi chú”</span></div>' +
+    '<textarea class="inp ltext" data-lf="text" data-k="l-text-' + id + '" data-autosize placeholder="Gõ nội dung chính của bài: từ mới, cấu trúc câu, ví dụ, bài về nhà…">' + esc(l.text || '') + '</textarea></div>' +
+    '<p class="small muted" style="margin-top:12px">Mẹo: trên Zoom chọn Share Screen → tab trình duyệt này, rồi bấm ' + ICON.full + ' để bảng chiếm toàn màn hình. Có thể vẽ bằng chuột, bút cảm ứng hoặc iPad. Bấm Esc để thoát toàn màn hình.</p>';
+}
+function lessonTodayBanner(s) {
+  const l = lessonsFor(s.id).find(x => x.date === today()); if (!l) return '';
+  return '<div class="lban"><span class="live">●</span><div class="grow"><b>Bài giảng hôm nay</b> · ' + esc(l.title || '') + '</div><button class="btn sm pri" data-act="pLesson" data-id="' + l.id + '">' + ICON.board + 'Xem bảng</button></div>';
+}
+function lessonTab(s, isPreview) {
+  const ls = lessonsFor(s.id);
+  if (!ls.length) return '<div class="card"><div class="empty"><h3>Chưa có bài giảng</h3><p>Khi giáo viên viết bảng trong buổi học, bài giảng sẽ hiện ở đây để em xem và chép lại.</p></div></div>';
+  if (!S.lessonOpen || !ls.some(l => l.id === S.lessonOpen)) S.lessonOpen = ls[0].id;
+  const meta = ls.find(l => l.id === S.lessonOpen); const full = lessonData(meta.id);
+  if (!full && S.role === 'student') fetchLesson(meta.id);
+  const text = (full || meta).text || '';
+  return '<div class="row lpick">' + ls.slice(0, 12).map(l => '<button class="chip ' + (l.id === meta.id ? 'on' : '') + '" data-act="pLesson" data-id="' + l.id + '">' + (l.date === today() ? 'Hôm nay' : fmtDateShort(l.date)) + ' · ' + esc(l.title || 'Bài giảng') + '</button>').join('') + '</div>' +
+    '<h3 style="margin:6px 0 10px">' + esc(meta.title || 'Bài giảng') + ' <span class="small muted" style="font-weight:400">· ' + fmtDate(meta.date) + '</span></h3>' +
+    (full ? boardSlot(meta.id, false) : '<div class="card"><div class="empty">Đang tải bảng…</div></div>') +
+    '<div class="card pad" style="margin-top:16px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Ghi chú của giáo viên</h3><div class="row">' + (text ? '<button class="btn sm" data-act="lCopy" data-id="' + meta.id + '">' + ICON.copy + 'Sao chép</button>' + (!isPreview ? '<button class="btn sm pri" data-act="lToNote" data-id="' + meta.id + '">' + ICON.plus + 'Lưu vào Ghi chú của em</button>' : '') : '') + '</div></div>' +
+    (text ? '<div class="pre ltextv">' + esc(text) + '</div>' : '<div class="muted small">Giáo viên chưa gõ ghi chú chữ cho bài này. Em có thể tải ảnh bảng về bằng nút ' + ICON.dl + ' trên bảng.</div>') + '</div>';
+}
+const lessonFetching = {};
+async function fetchLesson(id) {
+  if (!sb || !S.studentCode || lessonFetching[id]) return; lessonFetching[id] = true;
+  try {
+    const have = S.lessonFull[id];
+    const { data, error } = await sb.rpc('student_lesson', { p_code: S.studentCode, p_id: id, p_since: have ? have.u : null });
+    if (!error && data) { if (data.data) { S.lessonFull[id] = { u: data.u, data: data.data }; render(); } }
+  } catch (e) { }
+  lessonFetching[id] = false;
+}
+setInterval(() => { if (document.visibilityState === 'visible' && S.role === 'student' && S.studentCode && S.pTab === 'lesson' && S.lessonOpen) fetchLesson(S.lessonOpen); }, 3000);
+async function lessonToNote(sid, id) {
+  const l = lessonData(id) || (S.data.lessons || {})[id]; if (!l) return;
+  await flushNote();
+  const ex = notesOf(sid).find(n => n.lessonId === id);
+  const n = ex ? Object.assign(clone(ex), { body: l.text || '' }) : { id: uid('n'), studentId: sid, date: l.date || today(), title: l.title || 'Bài giảng', body: l.text || '', skill: '', by: 'student', lessonId: id, createdAt: new Date().toISOString() };
+  S.noteOpen = n.id; S.noteDraft = n; S.noteStatus = 'dirty'; await flushNote();
+  S.pTab = 'notes'; render(); window.scrollTo(0, 0); toast(ex ? 'Đã cập nhật ghi chú từ bài giảng.' : 'Đã lưu vào Ghi chú của em.');
 }
 
 /* ============ words of the week (mỗi từ hiện 7 ngày kể từ ngày bắt đầu) ============ */
@@ -813,6 +1078,8 @@ function go(view, extra = {}) {
   else if (view === 'templates') h = 'mau-lo-trinh';
   else if (view === 'help') h = 'huong-dan';
   else if (view === 'weekly') h = 'tu-cua-tuan';
+  else if (view === 'lessons') h = 'bai-giang';
+  else if (view === 'lesson' && S.lessonId) h = 'bai-giang-' + S.lessonId;
   if (S.role === 'teacher' && h && location.hash !== '#' + h) { try { history.replaceState(null, '', '#' + h); } catch (e) { location.hash = h; } }
   render(); window.scrollTo(0, 0);
 }
@@ -823,9 +1090,11 @@ function readHash() {
   else if (h === 'mau-lo-trinh') S.view = 'templates';
   else if (h === 'huong-dan') S.view = 'help';
   else if (h === 'tu-cua-tuan') S.view = 'weekly';
+  else if (h === 'bai-giang') S.view = 'lessons';
+  else if (h.startsWith('bai-giang-') && S.data.lessons[h.slice(10)]) { S.view = 'lesson'; S.lessonId = h.slice(10); }
   else S.view = 'overview';
 }
-window.addEventListener('pagehide', () => { flushNote(); });
+window.addEventListener('pagehide', () => { flushNote(); flushLessons(); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNote(); });
 window.addEventListener('hashchange', () => { readHash(); render(); });
 
@@ -837,7 +1106,14 @@ function render() {
   if (ae && ae.dataset && ae.dataset.k && root.contains(ae)) keep = { k: ae.dataset.k, v: ae.value, s: ae.selectionStart, e: ae.selectionEnd };
   const holder = $('#mediaHolder');
   $$('[data-media-slot] > .player', root).forEach(p => holder.appendChild(p));
+  $$('[data-board-slot] > .board', root).forEach(p => holder.appendChild(p));
   root.innerHTML = renderApp();
+  $$('[data-board-slot]', root).forEach(slot => {
+    const bid = slot.dataset.boardSlot, ed = slot.dataset.edit === '1', k = bid + (ed ? '|e' : '|v');
+    const b = boardCache[k] || (boardCache[k] = buildBoard(bid, ed)); slot.appendChild(b); b.refresh();
+  });
+  if (ae && ae.classList && ae.classList.contains('btext') && ae.isConnected) ae.focus();
+  if (!root.querySelector('.board.full')) document.body.classList.remove('bfull');
   $$('[data-media-slot]', root).forEach(slot => {
     const tid = slot.dataset.mediaSlot; const t = S.data.tasks[tid]; if (!t) return;
     let p = mediaCache[tid];
@@ -876,19 +1152,22 @@ function renderTeacher() {
   else if (S.view === 'templates') main = S.tplId && S.data.templates[S.tplId] ? vTemplateEdit() : vTemplates();
   else if (S.view === 'help') main = vHelp();
   else if (S.view === 'weekly') main = vWeekly();
+  else if (S.view === 'lessons') main = vLessons();
+  else if (S.view === 'lesson' && S.data.lessons[S.lessonId]) main = vLesson(S.lessonId);
+  else if (S.view === 'lesson') main = vLessons();
   else main = vOverview();
   const banners = (S.banner ? '<div class="banner warn">' + esc(S.banner) + '</div>' : '') + (S.stale && S.mode === 'cloud' ? '<div class="banner warn">Chưa đồng bộ được dữ liệu mới nhất, đang thử kết nối lại…</div>' : '');
   return '<div class="topbar"><button data-act="side">' + ICON.menu + '</button><b>Sổ Lộ Trình</b></div>' +
     '<div class="app"><aside class="side ' + (S.sideOpen ? 'open' : '') + '">' +
     '<div class="brand"><div class="logo">' + ICON.map + '</div><div><b>Sổ Lộ Trình</b><small>Quản lý học sinh gia sư</small></div></div>' +
-    navBtn('overview', 'Tổng quan', ICON.home) + navBtn('weekly', 'Từ của tuần', ICON.spark) + navBtn('templates', 'Mẫu lộ trình', ICON.book) + navBtn('help', 'Chia sẻ cho học sinh', ICON.share) +
+    navBtn('overview', 'Tổng quan', ICON.home) + navBtn('lessons', 'Bài giảng', ICON.board, S.view === 'lesson') + navBtn('weekly', 'Từ của tuần', ICON.spark) + navBtn('templates', 'Mẫu lộ trình', ICON.book) + navBtn('help', 'Chia sẻ cho học sinh', ICON.share) +
     '<div class="sec"><span>Học sinh (' + studs.length + ')</span><button data-act="addStudent">+ Thêm</button></div>' +
     studs.map(s => '<button class="stu-link ' + (S.view === 'student' && S.sid === s.id ? 'on' : '') + '" data-act="openStudent" data-id="' + s.id + '"><span class="dot" style="background:' + esc(s.color) + '"></span><span class="nm">' + esc(s.name) + '</span><span class="pc">' + coverage(s).pct + '%</span></button>').join('') +
     (studs.length ? '' : '<div class="small" style="padding:4px 10px;color:#a09b8d">Chưa có học sinh.</div>') +
     '<div class="foot">' + (S.mode === 'cloud' ? '<button class="nav" data-act="logout" style="margin-bottom:8px;padding:6px 0">Đăng xuất</button>' : '') + '<span class="mode ' + (S.mode === 'local' ? 'local' : '') + '"><i></i>' + (S.mode === 'local' ? 'Chế độ thử (lưu trên máy)' : S.stale ? 'Mất kết nối, đang thử lại' : 'Đã đồng bộ') + '</span></div>' +
     '</aside><main class="main">' + banners + main + '</main></div>';
 }
-function navBtn(v, label, icon) { return '<button class="nav ' + (S.view === v ? 'on' : '') + '" data-act="nav" data-v="' + v + '">' + icon + '<span>' + label + '</span></button>'; }
+function navBtn(v, label, icon, also) { return '<button class="nav ' + (S.view === v || also ? 'on' : '') + '" data-act="nav" data-v="' + v + '">' + icon + '<span>' + label + '</span></button>'; }
 function avatar(s, size = 36) { return '<span class="av" style="background:' + esc(s.color) + ';width:' + size + 'px;height:' + size + 'px">' + esc(initials(s.name)) + '</span>'; }
 function stackBar(cv) {
   if (!cv.total) return '<div class="bar"></div>';
@@ -1168,7 +1447,9 @@ function renderPortal(previewSid) {
   const todo = ts.filter(t => ['assigned', 'overdue'].includes(taskState(t))).sort((a, b) => (a.due || '9').localeCompare(b.due || '9'));
   const done = ts.filter(t => !['assigned', 'overdue'].includes(taskState(t)));
   let body = '';
-  if (S.pTab === 'weekly') {
+  if (S.pTab === 'lesson') {
+    body = lessonTab(s, !!previewSid);
+  } else if (S.pTab === 'weekly') {
     body = weeklyTab();
   } else if (S.pTab === 'notes') {
     body = notesView(s, !!previewSid);
@@ -1183,8 +1464,8 @@ function renderPortal(previewSid) {
       (done.length ? '<h3 style="margin-bottom:10px">Đã nộp</h3><div class="card">' + done.map(t => pTaskRow(t)).join('') + '</div>' : '');
   }
   return '<div class="portal">' + pv + '<div class="phead">' + avatar(s, 52) + '<div class="grow"><h1>Chào ' + esc(s.name) + '!</h1><div class="muted">' + esc(s.goal || s.level || '') + '</div></div>' + (!previewSid ? '<button class="btn sm" data-act="logoutCode" title="Thoát / đổi mã">Thoát</button>' : '') + ring(cv.pct).replace('width="120" height="120"', 'width="86" height="86"').replace('class="ring"', 'class="ring" style="width:86px;height:86px"').replace('font-size:28px', '') + '</div>' +
-    (S.pTab !== 'weekly' ? weeklyHero() : '') +
-    '<div class="tabs">' + [['tasks', 'Bài tập', todo.length], ['weekly', 'Từ của tuần'], ['notes', 'Ghi chú'], ['roadmap', 'Lộ trình'], ['learned', 'Đã học']].map(([k, l, c]) => '<button class="tab ' + (S.pTab === k ? 'on' : '') + '" data-act="ptab" data-v="' + k + '">' + l + (c ? '<span class="cnt">' + c + '</span>' : '') + '</button>').join('') + '</div>' + body +
+    (S.pTab !== 'lesson' ? lessonTodayBanner(s) : '') + (S.pTab !== 'weekly' ? weeklyHero() : '') +
+    '<div class="tabs">' + [['tasks', 'Bài tập', todo.length], ['lesson', 'Bài giảng'], ['weekly', 'Từ của tuần'], ['notes', 'Ghi chú'], ['roadmap', 'Lộ trình'], ['learned', 'Đã học']].map(([k, l, c]) => '<button class="tab ' + (S.pTab === k ? 'on' : '') + '" data-act="ptab" data-v="' + k + '">' + l + (c ? '<span class="cnt">' + c + '</span>' : '') + '</button>').join('') + '</div>' + body +
     (!previewSid ? '<p class="small muted" style="margin-top:30px;text-align:center"><button class="btn ghost sm" data-act="logoutCode">Đổi mã học sinh</button></p>' : '') + '</div>';
 }
 function pTaskRow(t) {
@@ -1482,6 +1763,13 @@ document.addEventListener('click', async e => {
     case 'skfilter': S.skillFilter = el.dataset.v; render(); break;
     case 'modRename': moduleModal(col, id, mid); break;
     case 'speak': speak(el.dataset.t || ''); break;
+    case 'lNew': await newLesson(); break;
+    case 'lOpen': go('lesson', { lessonId: id }); break;
+    case 'lDel': { const l = S.data.lessons[id]; if (l && await confirmBox('Xoá bài giảng “' + (l.title || '') + '”? Học sinh sẽ không xem được nữa.')) { clearTimeout(lessonTimers[id]); lessonTimers[id] = null; delete lessonLocal[id]; delete boardCache[id + '|e']; delete boardCache[id + '|v']; await delDoc('lessons', id); go('lessons'); } break; }
+    case 'lStu': { const l = editLesson(id); const v = el.dataset.v; let ids = (l.studentIds || []).slice(); if (!v) ids = []; else ids = ids.includes(v) ? ids.filter(x => x !== v) : ids.concat(v); l.studentIds = ids; saveLesson(id, true); render(); break; }
+    case 'pLesson': await flushNote(); S.pTab = 'lesson'; S.lessonOpen = id; render(); if (S.role === 'student') fetchLesson(id); break;
+    case 'lCopy': { const l = lessonData(id) || S.data.lessons[id]; try { await navigator.clipboard.writeText((l && l.text) || ''); toast('Đã sao chép, em dán vào vở hoặc ứng dụng ghi chú nhé.'); } catch (e2) { toast('Không sao chép được, em bôi đen đoạn chữ rồi bấm Ctrl+C.'); } break; }
+    case 'lToNote': { const s = S.previewSid ? getStudent(S.previewSid) : studentList().find(x => !x.archived && x.code === S.studentCode); if (s) await lessonToNote(s.id, id); break; }
     case 'wAdd': wordModal(null, null); break;
     case 'wEdit': wordModal(el.dataset.w, el.dataset.i); break;
     case 'wDel': { const it = weekItems(el.dataset.w).find(x => x.id === el.dataset.i); if (it && await confirmBox('Xoá “' + it.text + '”?')) await saveWeek(el.dataset.w, items => items.splice(items.findIndex(x => x.id === el.dataset.i), 1)); break; }
@@ -1562,6 +1850,7 @@ document.addEventListener('click', async e => {
 });
 document.addEventListener('change', async e => {
   const el = e.target;
+  if (el.dataset && el.dataset.lf === 'date' && S.lessonId) { const l = editLesson(S.lessonId); if (l && el.value) { l.date = el.value; saveLesson(S.lessonId, true); } return; }
   if (el.dataset && el.dataset.nf && S.noteDraft && (el.dataset.nf === 'date' || el.dataset.nf === 'skill')) {
     S.noteDraft[el.dataset.nf] = el.value; S.noteStatus = 'dirty'; await flushNote(); render(); return;
   }
@@ -1615,6 +1904,7 @@ document.addEventListener('paste', e => {
 let draftT;
 document.addEventListener('input', e => {
   const el = e.target;
+  if (el.dataset && el.dataset.lf && S.view === 'lesson' && S.lessonId && el.dataset.lf !== 'date') { const l = editLesson(S.lessonId); if (l) { l[el.dataset.lf] = el.value; saveLesson(S.lessonId); } if (el.hasAttribute('data-autosize')) autosize(el); return; }
   if (el.dataset && el.dataset.nf && S.noteDraft && (el.dataset.nf === 'title' || el.dataset.nf === 'body')) {
     S.noteDraft[el.dataset.nf] = el.value; scheduleNoteSave();
     const it = $('.nitem.on'); if (it) { if (el.dataset.nf === 'title') it.querySelector('.t').textContent = el.value || 'Không tiêu đề'; else it.querySelector('.sn').textContent = el.value.slice(0, 80) || '…'; }

@@ -109,11 +109,13 @@ begin
   select data into existing from public.docs where col = 'notes' and id = p_id;
   if existing is not null and existing->>'studentId' is distinct from sid then return false; end if;
   insert into public.docs(col, id, data, updated_at)
-  values ('notes', p_id, jsonb_build_object(
+  values ('notes', p_id, jsonb_strip_nulls(jsonb_build_object(
       'studentId', sid,
       'date', p_data->>'date', 'title', coalesce(p_data->>'title', ''), 'body', coalesce(p_data->>'body', ''),
       'skill', coalesce(p_data->>'skill', ''), 'by', coalesce(existing->>'by', 'student'),
-      'createdAt', coalesce(existing->>'createdAt', p_data->>'createdAt'), 'updatedAt', p_data->>'updatedAt'), now())
+      'lessonId', p_data->>'lessonId',
+      'images', case when jsonb_typeof(p_data->'images') = 'array' then p_data->'images' end,
+      'createdAt', coalesce(existing->>'createdAt', p_data->>'createdAt'), 'updatedAt', p_data->>'updatedAt')), now())
   on conflict (col, id) do update set data = excluded.data, updated_at = now();
   return true;
 end $$;
@@ -125,6 +127,44 @@ begin
   sid := public._student_id(p_code);
   if sid is null then return false; end if;
   delete from public.docs where col = 'notes' and id = p_id and data->>'studentId' = sid;
+  delete from public.docs where col = 'nimg' and data->>'noteId' = p_id and data->>'studentId' = sid;
+  return true;
+end $$;
+
+create or replace function public.student_image_save(p_code text, p_id text, p_note text, p_src text) returns boolean
+language plpgsql volatile security definer set search_path = public as $$
+declare sid text; owner text;
+begin
+  sid := public._student_id(p_code);
+  if sid is null then perform pg_sleep(0.6); return false; end if;
+  if p_id !~ '^[A-Za-z0-9_-]{1,64}$' or p_note !~ '^[A-Za-z0-9_-]{1,64}$' then return false; end if;
+  if length(p_src) > 1500000 or left(p_src, 40) !~ '^data:image/(jpeg|png|webp);base64,' then return false; end if;
+  select data->>'studentId' into owner from public.docs where col = 'nimg' and id = p_id;
+  if owner is not null and owner <> sid then return false; end if;
+  if owner is null and (select count(*) from public.docs where col = 'nimg' and data->>'studentId' = sid) >= 600 then return false; end if;
+  insert into public.docs(col, id, data, updated_at)
+  values ('nimg', p_id, jsonb_build_object('studentId', sid, 'noteId', p_note, 'src', p_src, 'createdAt', now()), now())
+  on conflict (col, id) do update set data = excluded.data, updated_at = now();
+  return true;
+end $$;
+
+create or replace function public.student_image_get(p_code text, p_ids text[]) returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare sid text;
+begin
+  sid := public._student_id(p_code);
+  if sid is null then return null; end if;
+  return coalesce((select jsonb_object_agg(id, data->>'src') from public.docs
+    where col = 'nimg' and id = any(p_ids[1:40]) and data->>'studentId' = sid), '{}'::jsonb);
+end $$;
+
+create or replace function public.student_image_delete(p_code text, p_id text) returns boolean
+language plpgsql volatile security definer set search_path = public as $$
+declare sid text;
+begin
+  sid := public._student_id(p_code);
+  if sid is null then return false; end if;
+  delete from public.docs where col = 'nimg' and id = p_id and data->>'studentId' = sid;
   return true;
 end $$;
 
@@ -137,6 +177,9 @@ grant execute on function public.student_lesson(text, text, timestamptz) to anon
 grant execute on function public.student_submit(text, text, text, int) to anon, authenticated;
 grant execute on function public.student_note_save(text, text, jsonb) to anon, authenticated;
 grant execute on function public.student_note_delete(text, text) to anon, authenticated;
+grant execute on function public.student_image_save(text, text, text, text) to anon, authenticated;
+grant execute on function public.student_image_get(text, text[]) to anon, authenticated;
+grant execute on function public.student_image_delete(text, text) to anon, authenticated;
 
 -- Realtime cho trang giáo viên
 do $$ begin

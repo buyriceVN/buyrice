@@ -289,6 +289,18 @@ body.bfull{overflow:hidden}
 .nsk span{display:inline-block;padding:3px 10px;border-radius:99px;border:1.5px solid var(--line);font-size:12.5px;font-weight:500;color:var(--muted)}
 .nsk input:checked+span{border-color:var(--skc);background:var(--skbg);color:var(--skc)}
 .tnote{padding:16px 18px;margin-bottom:12px}
+.nimgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px}
+.nimg{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#f3f1ec;aspect-ratio:4/3}
+.nimg img{width:100%;height:100%;object-fit:contain;display:block;cursor:zoom-in;background:#fff}
+.nimg.loading::after,.nimg.gone::after{content:'Đang tải ảnh…';position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--muted);background:#f3f1ec}
+.nimg.gone::after{content:'Ảnh không còn'}
+.nimg .cap{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;font-size:11.5px;padding:16px 8px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.nimx{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:17px;line-height:1;cursor:pointer;z-index:1}
+.nimgbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line2)}
+.nimgbar label.btn{cursor:pointer}.nimgbar .busy{color:var(--accent);font-weight:600}
+.neditor.drag{outline:2px dashed var(--accent);outline-offset:4px}
+.lbox img{max-width:100%;max-height:72vh;display:block;margin:0 auto;border-radius:8px;border:1px solid var(--line2)}
+
 @media (max-width:900px){.notes{grid-template-columns:1fr}.nlist{position:static}}
 .skgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 .skc{padding:16px 18px;border-top:4px solid var(--skc)}
@@ -375,6 +387,7 @@ const skillOf = k => SKILLS.find(x => x.k === k) || null;
 const skVars = k => { const x = skillOf(k); return x ? '--skc:' + x.color + ';--skbg:' + x.bg : '--skc:#6b6f76;--skbg:#eeece7'; };
 function skChip(k) { const x = skillOf(k); return '<span class="skchip" style="' + skVars(k) + '">' + esc(x ? x.label : 'Chưa gắn kỹ năng') + '</span>'; }
 const ICON = {
+  image: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>',
   board: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M12 16v4M8 20h8M7 9l3 3 4-5"/></svg>',
   pen: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
   hl: '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>',
@@ -499,6 +512,7 @@ async function enterTeacher() {
   try { await loadAllDocs(); } catch (e) { S.stale = true; }
   COLS.forEach(c => S.loadedCols[c] = true);
   sb.channel('docs-' + uid()).on('postgres_changes', { event: '*', schema: 'public', table: 'docs' }, p => {
+    const cc = (p.new && p.new.col) || (p.old && p.old.col); if (cc && !S.data[cc]) return;
     if (p.eventType === 'DELETE') { const o = p.old || {}; if (S.data[o.col]) { const c = Object.assign({}, S.data[o.col]); delete c[o.id]; S.data[o.col] = c; } }
     else { const n = p.new || {}; if (S.data[n.col]) S.data[n.col] = Object.assign({}, S.data[n.col], { [n.id]: n.data }); }
     reapplyLessonLocal(); render();
@@ -508,7 +522,7 @@ async function enterTeacher() {
 }
 async function loadAllDocs() {
   const all = []; let from = 0;
-  for (;;) { const { data, error } = await sb.from('docs').select('col,id,data').range(from, from + 999); if (error) throw error; all.push(...data); if (data.length < 1000) break; from += 1000; }
+  for (;;) { const { data, error } = await sb.from('docs').select('col,id,data').in('col', COLS).range(from, from + 999); if (error) throw error; all.push(...data); if (data.length < 1000) break; from += 1000; }
   const d = {}; COLS.forEach(c => d[c] = {}); all.forEach(r => { if (d[r.col]) d[r.col][r.id] = r.data; });
   COLS.forEach(c => S.data[c] = d[c]); S.stale = false; reapplyLessonLocal();
 }
@@ -598,14 +612,20 @@ function notesOf(sid, cloudOnly) {
 }
 const notesCloudOK = () => S.mode === 'local' || (S.canWrite && !S.notesLocalOnly);
 let noteTimer = null;
+function noteBody(d) {
+  const b = { studentId: d.studentId, date: d.date, title: d.title || '', body: d.body || '', skill: d.skill || '', by: d.by || 'student', createdAt: d.createdAt, updatedAt: new Date().toISOString() };
+  if (d.lessonId) b.lessonId = d.lessonId;
+  if (d.images && d.images.length) b.images = d.images.map(m => Object.assign({}, m));
+  return b;
+}
 function scheduleNoteSave() { clearTimeout(noteTimer); S.noteStatus = 'dirty'; paintNoteStatus(); noteTimer = setTimeout(flushNote, 900); }
 async function flushNote() {
   clearTimeout(noteTimer); noteTimer = null;
   const d = S.noteDraft; if (!d || S.noteStatus !== 'dirty') return;
-  const body = { studentId: d.studentId, date: d.date, title: d.title || '', body: d.body || '', skill: d.skill || '', by: d.by || 'student', createdAt: d.createdAt, updatedAt: new Date().toISOString() };
-  if (d.lessonId) body.lessonId = d.lessonId;
+  let body = noteBody(d);
   S.noteStatus = 'saving'; paintNoteStatus();
   if (notesCloudOK()) {
+    if (S.mode === 'cloud' && (d.images || []).some(m => m.src) && await liftInlineImgs(d)) body = noteBody(d);
     const had = !!(S.data.notes || {})[d.id];
     const ok = await saveDoc('notes', d.id, body, true);
     if (ok) { const L = localNotes(d.studentId); if (L[d.id]) { delete L[d.id]; setLocalNotes(d.studentId, L); } if (S.noteDraft && S.noteDraft.id === d.id && S.noteStatus === 'saving') S.noteStatus = 'saved'; paintNoteStatus(); return; }
@@ -638,22 +658,105 @@ function notesView(s, isPreview) {
   else if (hasLocal && notesCloudOK() && S.mode === 'cloud') warn = '<div class="banner info" style="justify-content:space-between"><span>Có ghi chú đang lưu trên máy này.</span><button class="btn sm" data-act="syncNotes" data-id="' + s.id + '">Đưa lên mạng</button></div>';
   const listHtml = '<div class="card nlist"><button class="btn pri" style="width:100%;justify-content:center;margin-bottom:10px" data-act="newNote" data-id="' + s.id + '">' + ICON.plus + 'Ghi chú mới</button>' +
     '<input class="inp" data-k="n-search" data-nq placeholder="Tìm trong ghi chú…" value="' + esc(S.noteQ || '') + '" style="margin-bottom:8px">' +
-    (list.length ? list.map(n => '<button class="nitem ' + (n.id === S.noteOpen ? 'on' : '') + '" data-act="openNote" data-id="' + n.id + '" data-s="' + s.id + '"><div class="small muted">' + fmtDate(n.date) + (n.by === 'teacher' ? ' · Giáo viên ghi' : '') + (n.local ? ' · trên máy' : '') + '</div><div class="t">' + esc(n.id === S.noteOpen && d ? d.title || 'Không tiêu đề' : n.title || 'Không tiêu đề') + '</div><div class="sn">' + esc(((n.id === S.noteOpen && d ? d.body : n.body) || '').slice(0, 80) || '…') + '</div></button>').join('') : '<div class="small muted" style="padding:10px">' + (q ? 'Không tìm thấy.' : 'Chưa có ghi chú nào.') + '</div>') + '</div>';
+    (list.length ? list.map(n => '<button class="nitem ' + (n.id === S.noteOpen ? 'on' : '') + '" data-act="openNote" data-id="' + n.id + '" data-s="' + s.id + '"><div class="small muted">' + fmtDate(n.date) + (n.by === 'teacher' ? ' · Giáo viên ghi' : '') + (n.local ? ' · trên máy' : '') + (((n.id === S.noteOpen && d ? d.images : n.images) || []).length ? ' · ' + ((n.id === S.noteOpen && d ? d.images : n.images) || []).length + ' ảnh' : '') + '</div><div class="t">' + esc(n.id === S.noteOpen && d ? d.title || 'Không tiêu đề' : n.title || 'Không tiêu đề') + '</div><div class="sn">' + esc(((n.id === S.noteOpen && d ? d.body : n.body) || '').slice(0, 80) || '…') + '</div></button>').join('') : '<div class="small muted" style="padding:10px">' + (q ? 'Không tìm thấy.' : 'Chưa có ghi chú nào.') + '</div>') + '</div>';
   let ed;
   if (!d) ed = '<div class="card"><div class="empty"><h3>Sổ ghi chú trên lớp</h3><p>Ghi lại từ vựng, cấu trúc, lỗi sai và lời dặn của giáo viên trong mỗi buổi học.</p><button class="btn pri" style="margin-top:10px" data-act="newNote" data-id="' + s.id + '">' + ICON.plus + 'Tạo ghi chú đầu tiên</button></div></div>';
   else ed = '<div class="card neditor"><div class="row" style="justify-content:space-between"><div class="row"><input type="date" class="inp" data-nf="date" value="' + esc(d.date) + '" style="width:auto;padding:5px 9px"><div class="nsk">' +
     SKILLS.map(x => '<label style="' + skVars(x.k) + '"><input type="radio" name="nsk" data-nf="skill" value="' + x.k + '"' + (d.skill === x.k ? ' checked' : '') + '><span>' + x.short + '</span></label>').join('') + '</div></div>' +
     '<div class="row"><span class="small muted" id="noteStatus"></span><button class="ib del" title="Xoá ghi chú" data-act="delNote" data-id="' + d.id + '">' + ICON.trash + '</button></div></div>' +
     '<input class="ttl" data-nf="title" data-k="n-title-' + d.id + '" value="' + esc(d.title) + '" placeholder="Tiêu đề">' +
-    '<textarea data-nf="body" data-k="n-body-' + d.id + '" placeholder="Ghi chú bài học hôm nay: từ mới, cấu trúc, lỗi sai cần nhớ…">' + esc(d.body) + '</textarea></div>';
+    '<textarea data-nf="body" data-k="n-body-' + d.id + '" placeholder="Ghi chú bài học hôm nay: từ mới, cấu trúc, lỗi sai cần nhớ…">' + esc(d.body) + '</textarea>' +
+    imgThumbs(d.images, true, d.id) +
+    '<div class="nimgbar"><label class="btn sm">' + ICON.image + 'Thêm ảnh<input type="file" accept="image/*" multiple data-nimg hidden></label><span class="small muted grow">Chụp hoặc chọn ảnh trong máy (ảnh bảng đã tải về, ảnh chụp vở…). Trên máy tính có thể dán ảnh (Ctrl+V) hoặc kéo thả vào đây.</span><span class="small busy" hidden>Đang tải ảnh lên…</span></div></div>';
   return warn + '<div class="notes">' + listHtml + ed + '</div>';
 }
 function tNotes(s) {
   const ns = notesOf(s.id, S.mode === 'cloud');
   return '<div class="row" style="margin-bottom:12px"><div class="grow muted">Ghi chú học sinh tự viết trên lớp. ' + (S.mode === 'cloud' ? 'Ghi chú em lưu trên máy riêng (khi chỉ có quyền xem) sẽ không hiện ở đây.' : '') + '</div><button class="btn" data-act="preview" data-id="' + s.id + '" data-v="notes">' + ICON.edit + 'Mở sổ ghi chú của em</button></div>' +
-    (ns.length ? ns.map(n => '<div class="card tnote"><div class="row" style="justify-content:space-between;margin-bottom:6px"><div class="row"><b>' + fmtDate(n.date) + '</b>' + (SKILL_KEYS.includes(n.skill) ? skChip(n.skill) : '') + (n.by === 'teacher' ? '<span class="tag">Giáo viên ghi</span>' : '') + '</div><span class="small muted">sửa lần cuối ' + fmtDate(n.updatedAt) + '</span></div><h3 style="margin-bottom:6px">' + esc(n.title || 'Không tiêu đề') + '</h3><div class="pre">' + esc(n.body || '') + '</div></div>').join('')
+    (ns.length ? ns.map(n => '<div class="card tnote"><div class="row" style="justify-content:space-between;margin-bottom:6px"><div class="row"><b>' + fmtDate(n.date) + '</b>' + (SKILL_KEYS.includes(n.skill) ? skChip(n.skill) : '') + (n.by === 'teacher' ? '<span class="tag">Giáo viên ghi</span>' : '') + '</div><span class="small muted">sửa lần cuối ' + fmtDate(n.updatedAt) + '</span></div><h3 style="margin-bottom:6px">' + esc(n.title || 'Không tiêu đề') + '</h3><div class="pre">' + esc(n.body || '') + '</div>' + imgThumbs(n.images, false, n.id) + '</div>').join('')
       : '<div class="card"><div class="empty"><h3>Chưa có ghi chú</h3><p>Khi học sinh ghi chú ở tab “Ghi chú” trên trang của em, nội dung sẽ hiện ở đây.</p></div></div>');
 }
+
+/* ============ ảnh trong ghi chú ============ */
+const imgCache = {}; const imgWant = new Set(); let imgTimer = null;
+const MAX_IMG_CHARS = 1400000, MAX_NOTE_IMGS = 30;
+const cloudImg = () => S.mode === 'cloud' && notesCloudOK();
+function dataToUrl(d) { try { const i = d.indexOf(','); const mime = (d.slice(0, i).match(/data:([^;]+)/) || [])[1] || 'image/jpeg'; const bin = atob(d.slice(i + 1)); const u = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u[k] = bin.charCodeAt(k); return URL.createObjectURL(new Blob([u], { type: mime })); } catch (e) { return d; } }
+function imgSrc(m) { if (m.src && !imgCache[m.id]) imgCache[m.id] = dataToUrl(m.src); const c = imgCache[m.id]; return c && c !== 'missing' ? c : ''; }
+function needImgs(list) { list.forEach(m => { if (!m.src && !imgCache[m.id]) imgWant.add(m.id); }); if (imgWant.size && !imgTimer) imgTimer = setTimeout(fetchImgs, 0); }
+async function fetchImgs() {
+  imgTimer = null; const ids = [...imgWant].filter(i => !imgCache[i]); imgWant.clear(); if (!ids.length || !sb || S.mode !== 'cloud') return;
+  for (let k = 0; k < ids.length; k += 20) {
+    const part = ids.slice(k, k + 20); let got = {};
+    try {
+      if (S.role === 'student') { const { data, error } = await sb.rpc('student_image_get', { p_code: S.studentCode, p_ids: part }); if (error) continue; got = data || {}; }
+      else { const { data, error } = await sb.from('docs').select('id,data').eq('col', 'nimg').in('id', part); if (error) continue; (data || []).forEach(r => got[r.id] = r.data && r.data.src); }
+    } catch (e) { continue; }
+    part.forEach(id => {
+      const src = got[id]; imgCache[id] = src ? dataToUrl(src) : 'missing';
+      $$('img[data-img="' + id + '"]').forEach(el => { const box = el.closest('.nimg'); if (src) { el.src = imgCache[id]; if (box) box.classList.remove('loading'); } else if (box) { box.classList.remove('loading'); box.classList.add('gone'); } });
+    });
+  }
+}
+function imgThumbs(list, editable, noteId) {
+  if (!list || !list.length) return '';
+  needImgs(list);
+  return '<div class="nimgs">' + list.map(m => { const src = imgSrc(m), miss = imgCache[m.id] === 'missing';
+    return '<div class="nimg' + (!src && !miss ? ' loading' : '') + (miss ? ' gone' : '') + '"><img data-img="' + m.id + '"' + (src ? ' src="' + src + '"' : '') + ' alt="' + esc(m.cap || 'Ảnh') + '" data-act="imgView" data-id="' + m.id + '">' +
+      (m.cap ? '<span class="cap">' + esc(m.cap) + '</span>' : '') + (editable ? '<button class="nimx" title="Xoá ảnh" data-act="imgDel" data-id="' + m.id + '">×</button>' : '') + '</div>'; }).join('') + '</div>';
+}
+function loadImage(src) { return new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; }); }
+async function toJpeg(source, w, h) {
+  let max = 1800, q = 0.84, out = '';
+  for (let t = 0; t < 6; t++) {
+    const k = Math.min(1, max / Math.max(w, h)); const c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(source, 0, 0, c.width, c.height);
+    out = c.toDataURL('image/jpeg', q); if (out.length <= MAX_IMG_CHARS) return out; max *= 0.8; q = Math.max(0.55, q - 0.08);
+  }
+  return out;
+}
+async function fileToJpeg(file) { const u = URL.createObjectURL(file); try { const im = await loadImage(u); return await toJpeg(im, im.naturalWidth, im.naturalHeight); } finally { URL.revokeObjectURL(u); } }
+function pageJpeg(strokes) { const c = document.createElement('canvas'); c.width = BW; c.height = BH; paintPage(c.getContext('2d'), strokes, false); return c.toDataURL('image/jpeg', 0.86); }
+async function saveImg(id, n, src) {
+  try {
+    if (S.role === 'student') { const { data, error } = await sb.rpc('student_image_save', { p_code: S.studentCode, p_id: id, p_note: n.id, p_src: src }); return !error && data === true; }
+    const { error } = await sb.from('docs').upsert({ col: 'nimg', id, data: { studentId: n.studentId, noteId: n.id, src, createdAt: new Date().toISOString() }, updated_at: new Date().toISOString() }); return !error;
+  } catch (e) { return false; }
+}
+async function delImgs(ids) {
+  ids = (ids || []).filter(Boolean); if (!ids.length || !sb || S.mode !== 'cloud') return;
+  try { if (S.role === 'student') { for (const id of ids) await sb.rpc('student_image_delete', { p_code: S.studentCode, p_id: id }); } else await sb.from('docs').delete().eq('col', 'nimg').in('id', ids); } catch (e) { }
+}
+/* đưa ảnh đang lưu tạm trên máy lên mạng */
+async function liftInlineImgs(n) {
+  for (const m of n.images || []) { if (!m.src) continue; if (!(await saveImg(m.id, n, m.src))) return false; imgSrc(m); delete m.src; }
+  return true;
+}
+/* tải 1 ảnh lên; trả về thông tin ảnh để gắn vào ghi chú */
+async function uploadImg(n, src, extra) {
+  const meta = Object.assign({ id: uid('i'), at: new Date().toISOString() }, extra || {});
+  if (cloudImg()) { if (!(await saveImg(meta.id, n, src))) return null; imgCache[meta.id] = dataToUrl(src); }
+  else meta.src = src;
+  return meta;
+}
+async function persistNote(d) {
+  if (S.noteDraft === d) { S.noteStatus = 'dirty'; await flushNote(); render(); }
+  else await saveDoc('notes', d.id, noteBody(d), true);
+}
+let imgBusy = false;
+async function addNoteImages(files) {
+  const d = S.noteDraft; if (!d || imgBusy) return;
+  const list = [...(files || [])].filter(f => /^image\//.test(f.type) || /\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name || '')); if (!list.length) return;
+  if ((d.images || []).length + list.length > MAX_NOTE_IMGS) { toast('Mỗi ghi chú có tối đa ' + MAX_NOTE_IMGS + ' ảnh.'); return; }
+  imgBusy = true; paintImgBusy(true); let ok = 0, fail = 0;
+  for (const f of list) {
+    try { const src = await fileToJpeg(f); const m = await uploadImg(d, src, { cap: (f.name || '').replace(/\.[^.]+$/, '').replace(/^image$/i, '').slice(0, 60) }); if (m) { d.images = (d.images || []).concat(m); ok++; } else fail++; }
+    catch (e) { fail++; }
+  }
+  imgBusy = false; if (ok) await persistNote(d); else paintImgBusy(false);
+  if (fail) toast(fail === list.length ? 'Chưa tải ảnh lên được. Kiểm tra mạng hoặc thử ảnh khác.' : 'Có ' + fail + ' ảnh chưa tải lên được.');
+}
+function paintImgBusy(on) { const b = $('.nimgbar .busy'); if (b) b.hidden = !on; }
 
 /* ============ bài giảng: bảng trắng + ghi chú chữ ============ */
 const BW = 1600, BH = 1000;
@@ -862,8 +965,8 @@ function lessonTab(s, isPreview) {
   return '<div class="row lpick">' + ls.slice(0, 12).map(l => '<button class="chip ' + (l.id === meta.id ? 'on' : '') + '" data-act="pLesson" data-id="' + l.id + '">' + (l.date === today() ? 'Hôm nay' : fmtDateShort(l.date)) + ' · ' + esc(l.title || 'Bài giảng') + '</button>').join('') + '</div>' +
     '<h3 style="margin:6px 0 10px">' + esc(meta.title || 'Bài giảng') + ' <span class="small muted" style="font-weight:400">· ' + fmtDate(meta.date) + '</span></h3>' +
     (full ? boardSlot(meta.id, false) : '<div class="card"><div class="empty">Đang tải bảng…</div></div>') +
-    '<div class="card pad" style="margin-top:16px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Ghi chú của giáo viên</h3><div class="row">' + (text ? '<button class="btn sm" data-act="lCopy" data-id="' + meta.id + '">' + ICON.copy + 'Sao chép</button>' + (!isPreview ? '<button class="btn sm pri" data-act="lToNote" data-id="' + meta.id + '">' + ICON.plus + 'Lưu vào Ghi chú của em</button>' : '') : '') + '</div></div>' +
-    (text ? '<div class="pre ltextv">' + esc(text) + '</div>' : '<div class="muted small">Giáo viên chưa gõ ghi chú chữ cho bài này. Em có thể tải ảnh bảng về bằng nút ' + ICON.dl + ' trên bảng.</div>') + '</div>';
+    '<div class="card pad" style="margin-top:16px"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h3>Ghi chú của giáo viên</h3><div class="row">' + (text ? '<button class="btn sm" data-act="lCopy" data-id="' + meta.id + '">' + ICON.copy + 'Sao chép chữ</button>' : '') + '<button class="btn sm" data-act="lDl" data-id="' + meta.id + '">' + ICON.dl + 'Tải ảnh bảng</button>' + (!isPreview ? '<button class="btn sm pri" data-act="lToNote" data-id="' + meta.id + '">' + ICON.plus + 'Lưu bảng + chữ vào Ghi chú</button>' : '') + '</div></div>' +
+    (text ? '<div class="pre ltextv">' + esc(text) + '</div>' : '<div class="muted small">Giáo viên chưa gõ ghi chú chữ cho bài này. Em vẫn tải được ảnh bảng hoặc lưu ảnh bảng vào Ghi chú của em.</div>') + '</div>';
 }
 const lessonFetching = {};
 async function fetchLesson(id) {
@@ -877,12 +980,27 @@ async function fetchLesson(id) {
 }
 setInterval(() => { if (document.visibilityState === 'visible' && S.role === 'student' && S.studentCode && S.pTab === 'lesson' && S.lessonOpen) fetchLesson(S.lessonOpen); }, 3000);
 async function lessonToNote(sid, id) {
+  if (imgBusy) return;
+  if (S.role === 'student' && !S.lessonFull[id]) await fetchLesson(id);
   const l = lessonData(id) || (S.data.lessons || {})[id]; if (!l) return;
   await flushNote();
   const ex = notesOf(sid).find(n => n.lessonId === id);
-  const n = ex ? Object.assign(clone(ex), { body: l.text || '' }) : { id: uid('n'), studentId: sid, date: l.date || today(), title: l.title || 'Bài giảng', body: l.text || '', skill: '', by: 'student', lessonId: id, createdAt: new Date().toISOString() };
-  S.noteOpen = n.id; S.noteDraft = n; S.noteStatus = 'dirty'; await flushNote();
-  S.pTab = 'notes'; render(); window.scrollTo(0, 0); toast(ex ? 'Đã cập nhật ghi chú từ bài giảng.' : 'Đã lưu vào Ghi chú của em.');
+  const n = ex ? clone(ex) : { id: uid('n'), studentId: sid, date: l.date || today(), title: l.title || 'Bài giảng', body: '', skill: '', by: 'student', lessonId: id, createdAt: new Date().toISOString() };
+  delete n.local;
+  const t = (l.text || '').trim();
+  if (t && !(n.body || '').includes(t)) n.body = n.body ? n.body.replace(/\s+$/, '') + '\n\n— Cập nhật từ bài giảng —\n' + t : t;
+  S.noteOpen = n.id; S.noteDraft = n; S.noteStatus = 'dirty'; S.pTab = 'notes'; await flushNote(); render(); window.scrollTo(0, 0);
+  const pages = (l.pages || []).filter(p => (p.s || []).length);
+  if (!pages.length) { toast(ex ? 'Đã cập nhật ghi chú từ bài giảng.' : 'Đã lưu vào Ghi chú của em.'); return; }
+  imgBusy = true; paintImgBusy(true); toast('Đang lưu ' + pages.length + ' trang bảng vào ghi chú…');
+  const fresh = [];
+  for (let i = 0; i < pages.length; i++) { const m = await uploadImg(n, pageJpeg(pages[i].s), { board: true, cap: 'Bảng · trang ' + (i + 1) }); if (m) fresh.push(m); }
+  imgBusy = false; paintImgBusy(false);
+  if (!fresh.length) { toast('Đã lưu chữ, nhưng chưa lưu được ảnh bảng. Em kiểm tra mạng rồi bấm lại nhé.'); return; }
+  const old = (n.images || []).filter(m => m.board);
+  n.images = fresh.concat((n.images || []).filter(m => !m.board));
+  await persistNote(n); delImgs(old.filter(m => !m.src).map(m => m.id));
+  toast(fresh.length < pages.length ? 'Đã lưu ' + fresh.length + '/' + pages.length + ' trang bảng, bấm lại để lưu đủ.' : 'Đã lưu ' + fresh.length + ' trang bảng' + (t ? ' và ghi chú chữ' : '') + ' vào Ghi chú của em.');
 }
 
 /* ============ words of the week (mỗi từ hiện 7 ngày kể từ ngày bắt đầu) ============ */
@@ -1095,6 +1213,11 @@ function readHash() {
   else S.view = 'overview';
 }
 window.addEventListener('pagehide', () => { flushNote(); flushLessons(); });
+const edOf = e => e.target && e.target.closest && e.target.closest('.neditor');
+document.addEventListener('paste', e => { if (!edOf(e) || !S.noteDraft) return; const f = [...((e.clipboardData && e.clipboardData.files) || [])].filter(x => /^image\//.test(x.type)); if (!f.length) return; e.preventDefault(); addNoteImages(f); });
+document.addEventListener('dragover', e => { const ed = edOf(e); if (!ed || !S.noteDraft || ![...(e.dataTransfer.types || [])].includes('Files')) return; e.preventDefault(); ed.classList.add('drag'); });
+document.addEventListener('dragleave', e => { const ed = edOf(e); if (ed && !ed.contains(e.relatedTarget)) ed.classList.remove('drag'); });
+document.addEventListener('drop', e => { const ed = edOf(e); if (!ed || !S.noteDraft) return; e.preventDefault(); ed.classList.remove('drag'); addNoteImages(e.dataTransfer.files); });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNote(); });
 window.addEventListener('hashchange', () => { readHash(); render(); });
 
@@ -1769,6 +1892,10 @@ document.addEventListener('click', async e => {
     case 'lStu': { const l = editLesson(id); const v = el.dataset.v; let ids = (l.studentIds || []).slice(); if (!v) ids = []; else ids = ids.includes(v) ? ids.filter(x => x !== v) : ids.concat(v); l.studentIds = ids; saveLesson(id, true); render(); break; }
     case 'pLesson': await flushNote(); S.pTab = 'lesson'; S.lessonOpen = id; render(); if (S.role === 'student') fetchLesson(id); break;
     case 'lCopy': { const l = lessonData(id) || S.data.lessons[id]; try { await navigator.clipboard.writeText((l && l.text) || ''); toast('Đã sao chép, em dán vào vở hoặc ứng dụng ghi chú nhé.'); } catch (e2) { toast('Không sao chép được, em bôi đen đoạn chữ rồi bấm Ctrl+C.'); } break; }
+    case 'lDl': downloadLesson(id); break;
+    case 'imgView': { const src = el.getAttribute('src'); if (!src) break; const cap = el.getAttribute('alt') || 'Ảnh'; const fn = (cap.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'anh') + '.jpg';
+      openModal(mHead(cap) + '<div class="mb lbox"><img src="' + src + '" alt=""></div><div class="mf"><a class="btn" href="' + src + '" download="' + fn + '">' + ICON.dl + 'Tải ảnh về</a><button class="btn pri" data-close>Đóng</button></div>', { size: 'wide' }); break; }
+    case 'imgDel': { const d = S.noteDraft; if (!d) break; const m = (d.images || []).find(x => x.id === id); if (!m || !(await confirmBox('Xoá ảnh này khỏi ghi chú?'))) break; d.images = d.images.filter(x => x.id !== id); await persistNote(d); if (!m.src) delImgs([id]); break; }
     case 'lToNote': { const s = S.previewSid ? getStudent(S.previewSid) : studentList().find(x => !x.archived && x.code === S.studentCode); if (s) await lessonToNote(s.id, id); break; }
     case 'wAdd': wordModal(null, null); break;
     case 'wEdit': wordModal(el.dataset.w, el.dataset.i); break;
@@ -1812,13 +1939,13 @@ document.addEventListener('click', async e => {
       clearTimeout(noteTimer); S.noteStatus = '';
       const L = localNotes(d.studentId); if (L[d.id]) { delete L[d.id]; setLocalNotes(d.studentId, L); }
       S.noteOpen = null; S.noteDraft = null;
-      if ((S.data.notes || {})[d.id]) await delDoc('notes', d.id); else render();
+      if ((S.data.notes || {})[d.id]) { await delDoc('notes', d.id); if (S.role !== 'student') delImgs((d.images || []).filter(m => !m.src).map(m => m.id)); } else render();
       break;
     }
     case 'syncNotes': {
       const L = localNotes(id); let n = 0;
       S.notesLocalOnly = false;
-      for (const [nid, body] of Object.entries(L)) { if (await saveDoc('notes', nid, body, true)) { n++; const L2 = localNotes(id); delete L2[nid]; setLocalNotes(id, L2); } else { S.notesLocalOnly = true; break; } }
+      for (const [nid, body] of Object.entries(L)) { if ((body.images || []).some(m => m.src)) await liftInlineImgs(Object.assign(body, { id: nid })); delete body.id; if (await saveDoc('notes', nid, body, true)) { n++; const L2 = localNotes(id); delete L2[nid]; setLocalNotes(id, L2); } else { S.notesLocalOnly = true; break; } }
       if (n) S.notesLocalOnly = false; toast(n ? 'Đã đưa ' + n + ' ghi chú lên mạng.' : 'Chưa đưa lên được, thử lại sau.'); render(); break;
     }
     case 'logoutCode': await flushNote(); S.noteOpen = null; S.noteDraft = null; S.studentCode = null; S.bundleChecked = false; lsDel(LS_CODE); if (S.role === 'student') COLS.forEach(c => S.data[c] = {}); render(); break;
@@ -1850,6 +1977,7 @@ document.addEventListener('click', async e => {
 });
 document.addEventListener('change', async e => {
   const el = e.target;
+  if (el.matches && el.matches('[data-nimg]')) { addNoteImages(el.files); el.value = ''; return; }
   if (el.dataset && el.dataset.lf === 'date' && S.lessonId) { const l = editLesson(S.lessonId); if (l && el.value) { l.date = el.value; saveLesson(S.lessonId, true); } return; }
   if (el.dataset && el.dataset.nf && S.noteDraft && (el.dataset.nf === 'date' || el.dataset.nf === 'skill')) {
     S.noteDraft[el.dataset.nf] = el.value; S.noteStatus = 'dirty'; await flushNote(); render(); return;

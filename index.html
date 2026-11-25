@@ -276,7 +276,11 @@ body.bfull{overflow:hidden}
 .gchips .chip{font-size:12px;padding:3px 10px}
 .gbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid var(--line2);background:#fbfaf7}
 .gsnd{display:flex;align-items:center;gap:6px;cursor:pointer}
-.gavbar{border-top:1px solid var(--line2)}
+.gavbar,.gsetbar{border-top:1px solid var(--line2)}
+.gsets{display:flex;gap:6px;flex-wrap:wrap}.gsets .chip{font-size:12.5px;padding:4px 11px}.gsets .chip:disabled{opacity:.45;cursor:default}
+.gslist{margin-top:8px;border-top:1px solid var(--line2)}
+.gsrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2)}
+.gsrow .spk{flex:none}
 .gavs{display:flex;gap:6px;flex-wrap:wrap}
 .gav{width:42px;height:42px;border-radius:10px;border:1.5px solid var(--line);background:#fff;padding:3px;cursor:pointer;display:grid;place-items:center}
 .gav img{max-width:100%;max-height:100%;display:block}
@@ -450,10 +454,10 @@ const ICON = {
 };
 
 /* ============ state ============ */
-const COLS = ['students', 'tasks', 'sessions', 'subs', 'templates', 'notes', 'plans', 'weekly', 'lessons'];
+const COLS = ['students', 'tasks', 'sessions', 'subs', 'templates', 'notes', 'plans', 'weekly', 'lessons', 'wordsets'];
 const S = {
   mode: 'loading', role: null, db: null, user: null, assets: null, canWrite: true,
-  data: { students: {}, tasks: {}, sessions: {}, subs: {}, templates: {}, notes: {}, plans: {}, weekly: {}, lessons: {} }, openPlans: {}, wk: null, lessonId: null, lessonOpen: null, lessonFull: {},
+  data: { students: {}, tasks: {}, sessions: {}, subs: {}, templates: {}, notes: {}, plans: {}, weekly: {}, lessons: {}, wordsets: {} }, openPlans: {}, gsetOpen: null, wk: null, lessonId: null, lessonOpen: null, lessonFull: {},
   noteOpen: null, noteDraft: null, noteStatus: '', noteQ: '', notesLocalOnly: false,
   loadedCols: {}, stale: false, banner: '',
   view: 'overview', sid: null, tab: 'roadmap', taskFilter: 'all', tplId: null,
@@ -1057,14 +1061,70 @@ const AVATARS = [
 ];
 const avImgs = {};
 function avatarImg(a) { return avImgs[a.id] || (avImgs[a.id] = Object.assign(new Image(), { src: a.src })); }
+/* bộ từ (folder) cho trò chơi */
+const GS_POS = ['', 'noun (n.)', 'verb (v.)', 'adjective (adj.)', 'adverb (adv.)', 'phrasal verb', 'idiom', 'collocation', 'phrase'];
+function gameSets() {
+  const weekly = { id: '__weekly', name: 'Từ của tuần', items: gameWords(), auto: true };
+  const rest = Object.entries(S.data.wordsets || {}).filter(([, v]) => v).map(([id, v]) => ({ id, name: v.name || 'Folder', items: (v.items || []).filter(i => i && i.text), order: v.order || 0 }))
+    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+  return [weekly].concat(rest);
+}
+function gsList(set, editable) {
+  if (!set.items.length) return '<div class="muted small" style="padding:14px 0">Chưa có từ nào trong folder này.</div>';
+  return '<div class="gslist">' + set.items.map(it => '<div class="gsrow"><button class="spk" data-act="speak" data-t="' + esc(it.text) + '" title="Nghe phát âm">' + ICON.sound + '</button>' +
+    '<div class="grow" style="min-width:0"><div><b>' + esc(it.text) + '</b>' + (it.pos ? ' <span class="wpos">' + esc(it.pos) + '</span>' : '') + (it.ipa ? ' <span class="muted small">' + esc(it.ipa) + '</span>' : '') + (it.meaning ? ' — ' + esc(it.meaning) : '') + '</div>' +
+    (it.example ? '<div class="small muted">“' + esc(it.example) + '”</div>' : '') + '</div>' +
+    (editable ? '<button class="ib" title="Sửa" data-act="gsWEdit" data-id="' + set.id + '" data-i="' + it.id + '">' + ICON.edit + '</button><button class="ib del" title="Xoá" data-act="gsWDel" data-id="' + set.id + '" data-i="' + it.id + '">' + ICON.trash + '</button>' : '') + '</div>').join('') + '</div>';
+}
+function vGameSets() {
+  const sets = gameSets(); if (!S.gsetOpen || !sets.some(x => x.id === S.gsetOpen)) S.gsetOpen = sets[0].id;
+  const cur = sets.find(x => x.id === S.gsetOpen);
+  return '<div class="card pad" style="margin-top:18px"><div class="row" style="justify-content:space-between;margin-bottom:12px;align-items:flex-start"><div><h3>Bộ từ cho trò chơi</h3><div class="small muted">Học sinh chọn một hoặc nhiều folder ở hàng “Bộ từ” bên dưới trò chơi.</div></div><button class="btn sm" data-act="gsNew">' + ICON.plus + 'Folder mới</button></div>' +
+    '<div class="row lpick">' + sets.map(x => '<button class="chip ' + (x.id === cur.id ? 'on' : '') + '" data-act="gsOpen" data-id="' + x.id + '">📁 ' + esc(x.name) + ' <span style="opacity:.65">' + x.items.length + '</span></button>').join('') + '</div>' +
+    (cur.auto
+      ? '<div class="row" style="margin:6px 0 4px;gap:10px"><span class="muted small grow">Folder này tự lấy các từ trong mục “Từ của tuần” (cả từ đang hiện và từ đã hết hạn). Muốn thêm hay sửa thì làm ở mục đó.</span><button class="btn sm" data-act="nav" data-v="weekly">Mở Từ của tuần</button></div>' + gsList(cur, false)
+      : '<div class="row" style="margin:6px 0 4px;gap:8px"><button class="btn sm pri" data-act="gsWAdd" data-id="' + cur.id + '">' + ICON.plus + 'Thêm từ</button><button class="btn sm" data-act="gsRename" data-id="' + cur.id + '">' + ICON.edit + 'Đổi tên</button><span class="grow"></span><button class="btn sm ghost" data-act="gsDel" data-id="' + cur.id + '">' + ICON.trash + 'Xoá folder</button></div>' + gsList(cur, true)) + '</div>';
+}
+function gsNameModal(id) {
+  const cur = id ? (S.data.wordsets || {})[id] : null;
+  const m = openModal(mHead(id ? 'Đổi tên folder' : 'Folder mới') + '<form id="gsf"><div class="mb"><label class="f"><span>Tên folder</span><input class="inp" name="name" required maxlength="40" value="' + esc(cur ? cur.name : '') + '" placeholder="VD: Technology, Travel, Health…"></label></div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">' + (id ? 'Lưu' : 'Tạo folder') + '</button></div></form>', { size: 'narrow' });
+  m.querySelector('#gsf').onsubmit = async e => {
+    e.preventDefault(); const name = String(new FormData(e.target).get('name') || '').trim(); if (!name) return; closeModal();
+    if (id) await saveDoc('wordsets', id, Object.assign(clone(cur), { name, updatedAt: new Date().toISOString() }));
+    else { const nid = uid('gs'); const order = Math.max(0, ...Object.values(S.data.wordsets || {}).map(v => (v && v.order) || 0)) + 1; S.gsetOpen = nid; await saveDoc('wordsets', nid, { name, order, items: [], createdAt: new Date().toISOString() }); }
+  };
+}
+function gsWordModal(setId, iid) {
+  const set = (S.data.wordsets || {})[setId]; if (!set) return;
+  const it = iid ? (set.items || []).find(x => x.id === iid) || {} : {};
+  const m = openModal(mHead((iid ? 'Sửa từ' : 'Thêm từ') + ' · ' + set.name) + '<form id="gswf"><div class="mb">' +
+    '<label class="f"><span>Từ / cụm từ tiếng Anh</span><input class="inp" name="text" required value="' + esc(it.text || '') + '" placeholder="VD: renewable energy"></label>' +
+    '<div class="f2"><label class="f"><span>Phiên âm (không bắt buộc)</span><input class="inp" name="ipa" value="' + esc(it.ipa || '') + '" placeholder="/rɪˈnjuː.ə.bəl/"></label>' +
+    '<label class="f"><span>Từ loại</span><select class="inp" name="pos">' + GS_POS.map(p => '<option value="' + p + '"' + ((it.pos || '') === p ? ' selected' : '') + '>' + (p || '— Từ loại —') + '</option>').join('') + '</select></label></div>' +
+    '<label class="f"><span>Nghĩa tiếng Việt</span><input class="inp" name="meaning" value="' + esc(it.meaning || '') + '" placeholder="năng lượng tái tạo"></label>' +
+    '<label class="f"><span>Câu ví dụ</span><input class="inp" name="example" value="' + esc(it.example || '') + '" placeholder="Governments should invest more in renewable energy."></label>' +
+    '</div><div class="mf">' + (!iid ? '<button type="button" class="btn" id="gswMore">Lưu và thêm từ khác</button><span class="grow"></span>' : '') + '<button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">' + (iid ? 'Lưu' : 'Thêm') + '</button></div></form>', { size: 'narrow' });
+  const f = m.querySelector('#gswf');
+  const save = async again => {
+    const d = new FormData(f); const text = String(d.get('text') || '').trim(); if (!text) { f.reportValidity(); return; }
+    const n = Object.assign({}, it, { id: iid || uid('w'), text, ipa: String(d.get('ipa') || '').trim(), pos: String(d.get('pos') || ''), meaning: String(d.get('meaning') || '').trim(), example: String(d.get('example') || '').trim() });
+    const cur = clone((S.data.wordsets || {})[setId]); cur.items = cur.items || [];
+    const i = cur.items.findIndex(x => x.id === n.id); if (i >= 0) cur.items[i] = n; else cur.items.push(n); cur.updatedAt = new Date().toISOString();
+    if (again) { f.reset(); f.querySelector('[name=text]').focus(); toast('Đã thêm “' + text + '”.'); } else closeModal();
+    await saveDoc('wordsets', setId, cur);
+  };
+  f.onsubmit = e => { e.preventDefault(); save(false); };
+  const more = m.querySelector('#gswMore'); if (more) more.onclick = () => save(true);
+}
 function gameSlot(owner) { return '<div data-game-slot="' + owner + '"></div>'; }
 function vGame() {
-  return '<div class="head"><div><h1>Trò chơi: Cún con học từ</h1><div class="sub">Học sinh chơi trong tab “Trò chơi” trên trang của mình. Mỗi chướng ngại vật mang một từ ngẫu nhiên lấy từ “Từ của tuần” (từ đang học và từ đã qua).</div></div><button class="btn" data-act="nav" data-v="weekly">' + ICON.left + 'Từ của tuần</button></div>' + gameSlot('teacher');
+  return '<div class="head"><div><h1>Trò chơi: Cún con học từ</h1><div class="sub">Học sinh chơi trong tab “Trò chơi” trên trang của mình. Mỗi chướng ngại vật mang một từ ngẫu nhiên lấy từ các folder bên dưới mà học sinh chọn.</div></div><button class="btn" data-act="nav" data-v="weekly">' + ICON.left + 'Từ của tuần</button></div>' + gameSlot('teacher') + vGameSets();
 }
 function buildGame(owner) {
   const el = document.createElement('div'); el.className = 'game';
   el.innerHTML = '<div class="gwrap"><canvas></canvas><div class="gov"></div></div>' +
     '<div class="gbar"><span class="small muted">Nhảy: <b>Space</b> / <b>↑</b> hoặc chạm · Bấm thêm lần nữa khi đang bay để <b>nhảy cao hơn</b> · Rơi nhanh: <b>↓</b></span><span class="grow"></span><span class="gspd small"><span class="muted">Tốc độ:</span>' + GAME_SPEEDS.map((v, i) => '<button type="button" class="chip" data-spd="' + i + '">' + v[0] + '</button>').join('') + '</span><label class="small gsnd"><input type="checkbox"> Đọc to từ vừa vượt qua</label></div>' +
+    '<div class="gbar gsetbar"><span class="small muted">Bộ từ:</span><div class="gsets"></div></div>' +
     '<div class="gbar gavbar"><span class="small muted">Nhân vật:</span><div class="gavs">' + AVATARS.map(a => '<button type="button" class="gav" data-av="' + a.id + '" title="' + esc(a.name) + '"><img src="' + a.src + '" alt="' + esc(a.name) + '"></button>').join('') + '</div>' +
     '<input class="inp gl" maxlength="32" placeholder="Chữ trên đầu nhân vật…" aria-label="Chữ trên đầu nhân vật"><span class="grow"></span><span class="small muted gcred">Hình cún: © Nudaeng</span></div>';
   const live = () => !!(el.isConnected && el.parentElement && el.parentElement.hasAttribute('data-game-slot'));
@@ -1100,7 +1160,29 @@ function buildGame(owner) {
     const d = window.devicePixelRatio || 1; cv.style.height = ch + 'px'; cv.width = Math.round(cw * d); cv.height = Math.round(ch * d);
     ctx.setTransform(d * k, 0, 0, d * k, 0, 0);
   }
-  function loadWords() { const w = gameWords(); g.sample = !w.length; g.words = w.length ? w : GAME_SAMPLE; g.bag = []; }
+  const LS_SETS = 'dino-sets-' + owner;
+  let selSets = null; try { selSets = JSON.parse(localStorage.getItem(LS_SETS) || 'null'); } catch (e) { }
+  function activeSel() {
+    const sets = gameSets(); let sel = Array.isArray(selSets) ? selSets.filter(id => sets.some(x => x.id === id && x.items.length)) : [];
+    if (!sel.length) sel = sets[0].items.length ? ['__weekly'] : sets.filter(x => x.items.length).slice(0, 1).map(x => x.id);
+    return sel;
+  }
+  function paintSets() {
+    const sets = gameSets(), sel = activeSel();
+    el.querySelector('.gsets').innerHTML = sets.map(x => '<button type="button" class="chip ' + (sel.includes(x.id) ? 'on' : '') + '" data-set="' + x.id + '"' + (x.items.length ? '' : ' disabled title="Folder chưa có từ"') + '>📁 ' + esc(x.name) + ' <span style="opacity:.65">' + x.items.length + '</span></button>').join('');
+  }
+  el.querySelector('.gsets').addEventListener('click', e => {
+    const b = e.target.closest('[data-set]'); if (!b || b.disabled) return; const id = b.dataset.set; let sel = activeSel();
+    sel = sel.includes(id) ? sel.filter(x => x !== id) : sel.concat(id);
+    if (!sel.length) { toast('Chọn ít nhất một folder nhé.'); return; }
+    selSets = sel; try { localStorage.setItem(LS_SETS, JSON.stringify(sel)); } catch (e2) { }
+    paintSets(); loadWords(); if (g.state === 'ready') menu(); b.blur();
+  });
+  function loadWords() {
+    const sets = gameSets(), sel = activeSel(), seen = new Set(), w = [];
+    sets.filter(x => sel.includes(x.id)).forEach(x => x.items.forEach(it => { const k2 = String(it.text || '').trim().toLowerCase(); if (k2 && !seen.has(k2)) { seen.add(k2); w.push(it); } }));
+    g.sample = !w.length; g.words = w.length ? w : GAME_SAMPLE; g.bag = []; g.setNames = sets.filter(x => sel.includes(x.id)).map(x => x.name);
+  }
   function nextWord() {
     if (!g.bag.length) { g.bag = g.words.slice().sort(() => Math.random() - 0.5); if (g.bag.length > 1 && g.bag[g.bag.length - 1] === g.last) g.bag.unshift(g.bag.pop()); }
     return (g.last = g.bag.pop());
@@ -1222,8 +1304,8 @@ function buildGame(owner) {
   function menu() {
     loadWords();
     showOv('<div class="gcard"><div class="gtitle">Cún con học từ</div><p>Mỗi chướng ngại vật lớn mang một từ em đã học. Nhảy qua để “thu” từ, va vào thì xem lại nghĩa của từ đó. Cẩn thận cả những hòn đá nhỏ ở giữa nhé!</p>' +
-      '<p class="small muted">' + (g.sample ? 'Chưa có từ của tuần nên đang dùng vài từ mẫu.' : g.words.length + ' từ / cụm từ sẽ xuất hiện ngẫu nhiên.') + (best ? ' · Kỷ lục: ' + Math.floor(best) : '') + '</p>' +
-      '<button class="btn pri" data-g="start">' + ICON.play + 'Bắt đầu</button><div class="small muted" style="margin-top:10px">Nhấn Space hoặc chạm để nhảy, bấm 2 lần để nhảy cao hơn · Chọn nhân vật và tốc độ ở bên dưới</div></div>');
+      '<p class="small muted">' + (g.sample ? 'Các folder chưa có từ nên đang dùng vài từ mẫu.' : g.words.length + ' từ / cụm từ trong folder <b>' + g.setNames.map(esc).join(', ') + '</b> sẽ xuất hiện ngẫu nhiên.') + (best ? ' · Kỷ lục: ' + Math.floor(best) : '') + '</p>' +
+      '<button class="btn pri" data-g="start">' + ICON.play + 'Bắt đầu</button><div class="small muted" style="margin-top:10px">Nhấn Space hoặc chạm để nhảy, bấm 2 lần để nhảy cao hơn · Chọn bộ từ, tốc độ và nhân vật ở bên dưới</div></div>');
   }
   function start() { reset(); g.state = 'play'; showOv(''); try { if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); } catch (e) { } kick(); jump(); }
   function pause() { if (g.state !== 'play') return; g.state = 'pause'; showOv('<div class="gcard sm"><div class="gtitle">Tạm dừng</div><button class="btn pri" data-g="resume">' + ICON.play + 'Chơi tiếp</button></div>'); }
@@ -1268,7 +1350,7 @@ function buildGame(owner) {
   document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
   window.addEventListener('resize', () => { if (live()) { size(); draw(); } });
   el._g = g; el._d = dino;
-  el.refresh = () => { size(); if (g.state === 'ready') { reset(); menu(); } draw(); if (g.state === 'play') kick(); };
+  el.refresh = () => { paintSets(); size(); if (g.state === 'ready') { reset(); menu(); } draw(); if (g.state === 'play') kick(); };
   return el;
 }
 
@@ -2169,6 +2251,13 @@ document.addEventListener('click', async e => {
     case 'pLesson': await flushNote(); S.pTab = 'lesson'; S.lessonOpen = id; render(); if (S.role === 'student') fetchLesson(id); break;
     case 'lCopy': { const l = lessonData(id) || S.data.lessons[id]; try { await navigator.clipboard.writeText((l && l.text) || ''); toast('Đã sao chép, em dán vào vở hoặc ứng dụng ghi chú nhé.'); } catch (e2) { toast('Không sao chép được, em bôi đen đoạn chữ rồi bấm Ctrl+C.'); } break; }
     case 'lDl': downloadLesson(id); break;
+    case 'gsOpen': S.gsetOpen = id; render(); break;
+    case 'gsNew': gsNameModal(null); break;
+    case 'gsRename': gsNameModal(id); break;
+    case 'gsDel': { const st = (S.data.wordsets || {})[id]; if (st && await confirmBox('Xoá folder “' + st.name + '” và ' + (st.items || []).length + ' từ trong đó?')) { S.gsetOpen = null; await delDoc('wordsets', id); } break; }
+    case 'gsWAdd': gsWordModal(id, null); break;
+    case 'gsWEdit': gsWordModal(id, el.dataset.i); break;
+    case 'gsWDel': { const st = clone((S.data.wordsets || {})[id] || {}); const w = (st.items || []).find(x => x.id === el.dataset.i); if (w && await confirmBox('Xoá “' + w.text + '” khỏi folder ' + st.name + '?')) { st.items = st.items.filter(x => x.id !== w.id); await saveDoc('wordsets', id, st); } break; }
     case 'imgView': { const src = el.getAttribute('src'); if (!src) break; const cap = el.getAttribute('alt') || 'Ảnh'; const fn = (cap.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'anh') + '.jpg';
       openModal(mHead(cap) + '<div class="mb lbox"><img src="' + src + '" alt=""></div><div class="mf"><a class="btn" href="' + src + '" download="' + fn + '">' + ICON.dl + 'Tải ảnh về</a><button class="btn pri" data-close>Đóng</button></div>', { size: 'wide' }); break; }
     case 'imgDel': { const d = S.noteDraft; if (!d) break; const m = (d.images || []).find(x => x.id === id); if (!m || !(await confirmBox('Xoá ảnh này khỏi ghi chú?'))) break; d.images = d.images.filter(x => x.id !== id); await persistNote(d); if (!m.src) delImgs([id]); break; }

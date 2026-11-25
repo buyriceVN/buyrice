@@ -276,6 +276,13 @@ body.bfull{overflow:hidden}
 .gchips .chip{font-size:12px;padding:3px 10px}
 .gbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid var(--line2);background:#fbfaf7}
 .gsnd{display:flex;align-items:center;gap:6px;cursor:pointer}
+.gavbar{border-top:1px solid var(--line2)}
+.gavs{display:flex;gap:6px;flex-wrap:wrap}
+.gav{width:42px;height:42px;border-radius:10px;border:1.5px solid var(--line);background:#fff;padding:3px;cursor:pointer;display:grid;place-items:center}
+.gav img{max-width:100%;max-height:100%;display:block}
+.gav.on{border-color:var(--accent);box-shadow:0 0 0 2px rgba(201,85,46,.25);background:#fff5ef}
+.gl{width:200px;max-width:100%;padding:6px 10px;font-size:13px}
+.gcred{font-size:11px}
 .gspd{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.gspd .chip{font-size:12px;padding:3px 10px}
 @media (max-width:560px){.gcard{padding:12px 14px}.ghit{font-size:22px}.gtitle{font-size:18px}.gchips{display:none}}
 .wkhero{background:linear-gradient(135deg,#fff7ec,#fdf0e6);border:1px solid #f0d8c4;border-radius:var(--radius);padding:16px 18px;margin-bottom:22px}
@@ -1037,8 +1044,19 @@ function gameWords() {
   return out;
 }
 const GAME_SPEEDS = [['Rất chậm', 0.6], ['Chậm', 0.8], ['Vừa', 1], ['Nhanh', 1.25]];
-const DW = 63, DH = 75, DOG_LABEL = 'Ai ơi, cứuuu...';
-const DOG_IMG = new Image(); DOG_IMG.src = 'dog.png';
+const DH = 75;
+const AVATARS = [
+  { id: 'cun', src: 'dog.png', name: 'Cún kêu cứu', label: 'Ai ơi, cứuuu...' },
+  { id: 'thaigiam', src: 'av/thaigiam.png', name: 'Thái giám', label: 'Cho đẩy vào lãnh cung!' },
+  { id: 'hoangthuong', src: 'av/hoangthuong.png', name: 'Hoàng thượng', label: '' },
+  { id: 'hocsinh', src: 'av/hocsinh.png', name: 'Học sinh', label: '' },
+  { id: 'congso', src: 'av/congso.png', name: 'Đi làm', label: '' },
+  { id: 'ngheo', src: 'av/ngheo.png', name: 'Cún nghèo', label: '' },
+  { id: 'ngugat', src: 'av/ngugat.png', name: 'Ngủ gật', label: '' },
+  { id: 'suytu', src: 'av/suytu.png', name: 'Suy tư', label: '' }
+];
+const avImgs = {};
+function avatarImg(a) { return avImgs[a.id] || (avImgs[a.id] = Object.assign(new Image(), { src: a.src })); }
 function gameSlot(owner) { return '<div data-game-slot="' + owner + '"></div>'; }
 function vGame() {
   return '<div class="head"><div><h1>Trò chơi: Cún con học từ</h1><div class="sub">Học sinh chơi trong tab “Trò chơi” trên trang của mình. Mỗi chướng ngại vật mang một từ ngẫu nhiên lấy từ “Từ của tuần” (từ đang học và từ đã qua).</div></div><button class="btn" data-act="nav" data-v="weekly">' + ICON.left + 'Từ của tuần</button></div>' + gameSlot('teacher');
@@ -1046,7 +1064,9 @@ function vGame() {
 function buildGame(owner) {
   const el = document.createElement('div'); el.className = 'game';
   el.innerHTML = '<div class="gwrap"><canvas></canvas><div class="gov"></div></div>' +
-    '<div class="gbar"><span class="small muted">Nhảy: <b>Space</b> / <b>↑</b> hoặc chạm vào màn hình · Rơi nhanh: <b>↓</b></span><span class="grow"></span><span class="gspd small"><span class="muted">Tốc độ:</span>' + GAME_SPEEDS.map((v, i) => '<button type="button" class="chip" data-spd="' + i + '">' + v[0] + '</button>').join('') + '</span><label class="small gsnd"><input type="checkbox"> Đọc to từ vừa vượt qua</label></div>';
+    '<div class="gbar"><span class="small muted">Nhảy: <b>Space</b> / <b>↑</b> hoặc chạm · Bấm thêm lần nữa khi đang bay để <b>nhảy cao hơn</b> · Rơi nhanh: <b>↓</b></span><span class="grow"></span><span class="gspd small"><span class="muted">Tốc độ:</span>' + GAME_SPEEDS.map((v, i) => '<button type="button" class="chip" data-spd="' + i + '">' + v[0] + '</button>').join('') + '</span><label class="small gsnd"><input type="checkbox"> Đọc to từ vừa vượt qua</label></div>' +
+    '<div class="gbar gavbar"><span class="small muted">Nhân vật:</span><div class="gavs">' + AVATARS.map(a => '<button type="button" class="gav" data-av="' + a.id + '" title="' + esc(a.name) + '"><img src="' + a.src + '" alt="' + esc(a.name) + '"></button>').join('') + '</div>' +
+    '<input class="inp gl" maxlength="32" placeholder="Chữ trên đầu nhân vật…" aria-label="Chữ trên đầu nhân vật"><span class="grow"></span><span class="small muted gcred">Hình cún: © Nudaeng</span></div>';
   const live = () => !!(el.isConnected && el.parentElement && el.parentElement.hasAttribute('data-game-slot'));
   const cv = el.querySelector('canvas'), ctx = cv.getContext('2d'), ov = el.querySelector('.gov'), snd = el.querySelector('.gsnd input');
   const LS_BEST = 'dino-best-' + owner, LS_SND = 'dino-sound', LS_SPD = 'dino-speed';
@@ -1054,6 +1074,18 @@ function buildGame(owner) {
   const paintSpd = () => el.querySelectorAll('[data-spd]').forEach(b => b.classList.toggle('on', +b.dataset.spd === spd));
   el.querySelector('.gspd').addEventListener('click', e => { const b = e.target.closest('[data-spd]'); if (!b) return; spd = +b.dataset.spd; try { localStorage.setItem(LS_SPD, String(spd)); } catch (e2) { } paintSpd(); b.blur(); });
   paintSpd();
+  const LS_AV = 'dino-avatar-' + owner, LS_LB = 'dino-label-' + owner + '-';
+  let av = AVATARS[0]; try { av = AVATARS.find(a => a.id === localStorage.getItem(LS_AV)) || AVATARS[0]; } catch (e) { }
+  const lbIn = el.querySelector('.gl');
+  const labelOf = a => { try { const v = localStorage.getItem(LS_LB + a.id); return v === null ? a.label : v; } catch (e) { return a.label; } };
+  let label = labelOf(av);
+  const paintAv = () => { el.querySelectorAll('[data-av]').forEach(b => b.classList.toggle('on', b.dataset.av === av.id)); lbIn.value = label; avatarImg(av); };
+  el.querySelector('.gavs').addEventListener('click', e => { const b = e.target.closest('[data-av]'); if (!b) return; av = AVATARS.find(a => a.id === b.dataset.av) || AVATARS[0]; try { localStorage.setItem(LS_AV, av.id); } catch (e2) { } label = labelOf(av); paintAv(); b.blur(); draw(); });
+  lbIn.addEventListener('input', () => { label = lbIn.value.slice(0, 32); try { localStorage.setItem(LS_LB + av.id, label); } catch (e) { } draw(); });
+  lbIn.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') lbIn.blur(); });
+  const aw = () => { const im = avatarImg(av); const r = im.naturalWidth && im.naturalHeight ? im.naturalWidth / im.naturalHeight : 0.84; return Math.min(110, DH * r); };
+  avatarImg(av).addEventListener('load', () => draw());
+  paintAv();
   let best = +(localStorage.getItem(LS_BEST) || 0) || 0;
   try { snd.checked = localStorage.getItem(LS_SND) !== '0'; } catch (e) { snd.checked = true; }
   snd.onchange = () => { try { localStorage.setItem(LS_SND, snd.checked ? '1' : '0'); } catch (e) { } };
@@ -1092,23 +1124,24 @@ function buildGame(owner) {
   function reset() {
     loadWords(); g.lastBig = null; g.score = 0; g.speed = 6.2 * sf; g.t = 0; g.obs = []; g.floats = []; g.passed = []; g.hit = null; g.nextGap = 120;
     g.clouds = [0, 1, 2].map(i => ({ x: 120 + i * 300 + Math.random() * 100, y: 30 + Math.random() * 60 }));
-    Object.assign(dino, { y: GROUND - DH, vy: 0, duck: false, jumping: false });
+    Object.assign(dino, { y: GROUND - DH, vy: 0, duck: false, jumping: false, jumps: 0, flip: 0 });
   }
   function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill(); }
   function drawDino() {
     const duck = dino.duck && !dino.jumping, dead = g.state === 'over', run = g.state === 'play' && !dino.jumping;
     const bob = run ? Math.abs(Math.sin(g.t * 0.32)) * 4 : 0;
-    const h = duck ? DH * 0.7 : DH, w = duck ? DW * 1.12 : DW;
+    const DW = aw(), h = duck ? DH * 0.7 : DH, w = duck ? DW * 1.12 : DW;
     const y = (dino.jumping ? dino.y + DH : GROUND) - h - bob, x = dino.x;
     ctx.save(); ctx.translate(x + w / 2, y + h / 2);
     ctx.rotate(dead ? 0.32 : dino.jumping ? Math.max(-0.22, Math.min(0.22, dino.vy * 0.02)) : run ? Math.sin(g.t * 0.32) * 0.07 : 0);
-    if (DOG_IMG.complete && DOG_IMG.naturalWidth) ctx.drawImage(DOG_IMG, -w / 2, -h / 2, w, h);
+    const im = avatarImg(av); if (im.complete && im.naturalWidth) { if (dino.flip) ctx.rotate(-dino.flip); ctx.drawImage(im, -w / 2, -h / 2, w, h); }
     else { ctx.fillStyle = '#d9b77f'; rr(-w / 2, -h / 2, w, h, 18); }
     ctx.restore();
-    ctx.font = font(800, 14); const lw = ctx.measureText(DOG_LABEL).width;
+    if (!label.trim()) return;
+    ctx.font = font(800, 14); const lw = ctx.measureText(label).width;
     const lx = Math.max(lw / 2 + 6, x + w / 2), ly = y - 6;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = '#fbfaf6'; ctx.strokeText(DOG_LABEL, lx, ly);
-    ctx.fillStyle = '#1f2328'; ctx.fillText(DOG_LABEL, lx, ly); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = '#fbfaf6'; ctx.strokeText(label, lx, ly);
+    ctx.fillStyle = '#1f2328'; ctx.fillText(label, lx, ly); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   }
   function drawStone(o) {
     ctx.fillStyle = '#9b958a'; ctx.beginPath(); ctx.moveTo(o.x, GROUND); ctx.quadraticCurveTo(o.x + 1, o.y + 2, o.x + o.w * 0.45, o.y); ctx.quadraticCurveTo(o.x + o.w, o.y + 1, o.x + o.w, GROUND); ctx.closePath(); ctx.fill();
@@ -1147,7 +1180,7 @@ function buildGame(owner) {
     drawDino();
     ctx.textBaseline = 'top'; ctx.font = font(600, 16); ctx.fillStyle = '#9a948a'; ctx.textAlign = 'right';
     ctx.fillText('KỶ LỤC ' + String(Math.floor(best)).padStart(5, '0') + '    ' + String(Math.floor(g.score)).padStart(5, '0'), W - 16, 14);
-    ctx.textAlign = 'left'; ctx.fillStyle = '#9a948a'; ctx.font = font(500, 14); ctx.fillText('Từ đã vượt: ' + g.passed.length, 16, 14);
+    ctx.fillStyle = '#9a948a'; ctx.font = font(500, 13); ctx.fillText('Từ đã vượt: ' + g.passed.length, W - 16, 36); ctx.textAlign = 'left';
     g.floats.forEach(f => {
       const a = Math.max(0, Math.min(1, f.life / 40)); ctx.globalAlpha = a; ctx.font = font(600, 17); const txt = '✓ ' + f.w.text + (f.w.meaning ? ' — ' + f.w.meaning : '');
       const tw = Math.min(W - 40, ctx.measureText(txt).width + 26), x = Math.max(16, Math.min(W - tw - 16, W / 2 - tw / 2)), y = 52 - (90 - f.life) * 0.15;
@@ -1157,7 +1190,7 @@ function buildGame(owner) {
   }
   const hits = (o) => {
     const duck = dino.duck && !dino.jumping;
-    const dx = dino.x + 9, dw = duck ? DW * 1.12 - 16 : DW - 18, dy = duck ? GROUND - DH * 0.7 + 6 : dino.y + 10, dh = duck ? DH * 0.7 - 8 : DH - 12;
+    const DW = aw(), dx = dino.x + DW * 0.15, dw = duck ? DW * 1.12 - DW * 0.3 : DW * 0.7, dy = duck ? GROUND - DH * 0.7 + 6 : dino.y + 10, dh = duck ? DH * 0.7 - 8 : DH - 12;
     const ox = o.x + (o.kind === 'stone' ? 3 : 4), ow = o.w - (o.kind === 'stone' ? 6 : 8), oy = (o.kind === 'bird' ? o.y + 6 : o.y + (o.kind === 'stone' ? 3 : 4)), oh = (o.kind === 'bird' ? 14 : o.h - 4);
     return dx < ox + ow && dx + dw > ox && dy < oy + oh && dy + dh > oy;
   };
@@ -1165,7 +1198,8 @@ function buildGame(owner) {
     g.t += f; g.speed = GAME_SPEEDS[spd][1] * sf * Math.min(13.5, 6.2 + g.t * 0.0013);
     g.score += g.speed * f * 0.03 / sf; g.groundX += g.speed * f;
     g.clouds.forEach(c => { c.x -= g.speed * f * 0.2; if (c.x < -70) { c.x = W + Math.random() * 200; c.y = 26 + Math.random() * 70; } });
-    if (dino.jumping) { dino.vy += (dino.duck ? 2.2 : 0.62) * f; dino.y += dino.vy * f; if (dino.y >= GROUND - DH) { dino.y = GROUND - DH; dino.vy = 0; dino.jumping = false; } }
+    if (dino.jumping) { dino.vy += (dino.duck ? 2.2 : 0.62) * f; dino.y += dino.vy * f; if (dino.y >= GROUND - DH) { dino.y = GROUND - DH; dino.vy = 0; dino.jumping = false; dino.jumps = 0; dino.flip = 0; } }
+    if (dino.flip) dino.flip = Math.max(0, dino.flip - 0.21 * f);
     dino.ft += f; if (dino.ft > 6) { dino.ft = 0; dino.frame ^= 1; }
     g.obs.forEach(o => { o.x -= (g.speed + (o.kind === 'bird' ? 0.6 : 0)) * f; o.flap += f; });
     const last = g.lastBig; if (!last || last.x < W + 20 - g.nextGap) spawn();
@@ -1189,7 +1223,7 @@ function buildGame(owner) {
     loadWords();
     showOv('<div class="gcard"><div class="gtitle">Cún con học từ</div><p>Mỗi chướng ngại vật lớn mang một từ em đã học. Nhảy qua để “thu” từ, va vào thì xem lại nghĩa của từ đó. Cẩn thận cả những hòn đá nhỏ ở giữa nhé!</p>' +
       '<p class="small muted">' + (g.sample ? 'Chưa có từ của tuần nên đang dùng vài từ mẫu.' : g.words.length + ' từ / cụm từ sẽ xuất hiện ngẫu nhiên.') + (best ? ' · Kỷ lục: ' + Math.floor(best) : '') + '</p>' +
-      '<button class="btn pri" data-g="start">' + ICON.play + 'Bắt đầu</button><div class="small muted" style="margin-top:10px">Nhấn Space hoặc chạm để nhảy · Chỉnh tốc độ ở thanh bên dưới</div></div>');
+      '<button class="btn pri" data-g="start">' + ICON.play + 'Bắt đầu</button><div class="small muted" style="margin-top:10px">Nhấn Space hoặc chạm để nhảy, bấm 2 lần để nhảy cao hơn · Chọn nhân vật và tốc độ ở bên dưới</div></div>');
   }
   function start() { reset(); g.state = 'play'; showOv(''); try { if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); } catch (e) { } kick(); jump(); }
   function pause() { if (g.state !== 'play') return; g.state = 'pause'; showOv('<div class="gcard sm"><div class="gtitle">Tạm dừng</div><button class="btn pri" data-g="resume">' + ICON.play + 'Chơi tiếp</button></div>'); }
@@ -1215,7 +1249,11 @@ function buildGame(owner) {
     draw();
     if (snd.checked) speak(w.text);
   }
-  function jump() { if (g.state !== 'play' || dino.jumping) return; dino.jumping = true; dino.vy = -11.6; }
+  function jump() {
+    if (g.state !== 'play') return;
+    if (!dino.jumping) { dino.jumping = true; dino.jumps = 1; dino.vy = -11.6; return; }
+    if (dino.jumps < 2) { dino.jumps = 2; dino.vy = -Math.sqrt(2 * 0.62 * Math.max(30, dino.y - 34)); dino.flip = Math.PI * 2; }  // nhảy kép: bay cao hơn và lộn một vòng
+  }
   function act() { if (g.state === 'play') jump(); else if (g.state === 'ready') start(); else if (g.state === 'pause') resume(); else if (g.state === 'over' && Date.now() - g.overAt > 500) start(); }
   ov.addEventListener('click', e => { const b = e.target.closest('[data-g]'); if (!b) return; e.stopPropagation(); const v = b.dataset.g; if (v === 'start') start(); else if (v === 'resume') resume(); });
   el.querySelector('.gwrap').addEventListener('pointerdown', e => { if (e.target.closest('.gov') && g.state !== 'play') return; e.preventDefault(); act(); });

@@ -276,6 +276,7 @@ body.bfull{overflow:hidden}
 .gchips .chip{font-size:12px;padding:3px 10px}
 .gbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid var(--line2);background:#fbfaf7}
 .gsnd{display:flex;align-items:center;gap:6px;cursor:pointer}
+.gspd{display:flex;align-items:center;gap:4px;flex-wrap:wrap}.gspd .chip{font-size:12px;padding:3px 10px}
 @media (max-width:560px){.gcard{padding:12px 14px}.ghit{font-size:22px}.gtitle{font-size:18px}.gchips{display:none}}
 .wkhero{background:linear-gradient(135deg,#fff7ec,#fdf0e6);border:1px solid #f0d8c4;border-radius:var(--radius);padding:16px 18px;margin-bottom:22px}
 .wkhero h3{display:flex;align-items:center;gap:8px;color:var(--accent);margin-bottom:12px}
@@ -1035,23 +1036,30 @@ function gameWords() {
   allWords().filter(x => x.start <= t).forEach(x => { const k = String(x.it.text || '').trim().toLowerCase(); if (k && !seen.has(k)) { seen.add(k); out.push(x.it); } });
   return out;
 }
+const GAME_SPEEDS = [['Rất chậm', 0.6], ['Chậm', 0.8], ['Vừa', 1], ['Nhanh', 1.25]];
+const DW = 63, DH = 75, DOG_LABEL = 'Ai ơi, cứuuu...';
+const DOG_IMG = new Image(); DOG_IMG.src = 'dog.png';
 function gameSlot(owner) { return '<div data-game-slot="' + owner + '"></div>'; }
 function vGame() {
-  return '<div class="head"><div><h1>Trò chơi: Khủng long học từ</h1><div class="sub">Học sinh chơi trong tab “Trò chơi” trên trang của mình. Mỗi chướng ngại vật mang một từ ngẫu nhiên lấy từ “Từ của tuần” (từ đang học và từ đã qua).</div></div><button class="btn" data-act="nav" data-v="weekly">' + ICON.left + 'Từ của tuần</button></div>' + gameSlot('teacher');
+  return '<div class="head"><div><h1>Trò chơi: Cún con học từ</h1><div class="sub">Học sinh chơi trong tab “Trò chơi” trên trang của mình. Mỗi chướng ngại vật mang một từ ngẫu nhiên lấy từ “Từ của tuần” (từ đang học và từ đã qua).</div></div><button class="btn" data-act="nav" data-v="weekly">' + ICON.left + 'Từ của tuần</button></div>' + gameSlot('teacher');
 }
 function buildGame(owner) {
   const el = document.createElement('div'); el.className = 'game';
   el.innerHTML = '<div class="gwrap"><canvas></canvas><div class="gov"></div></div>' +
-    '<div class="gbar"><span class="small muted">Nhảy: <b>Space</b> / <b>↑</b> hoặc chạm vào màn hình · Rơi nhanh: <b>↓</b></span><span class="grow"></span><label class="small gsnd"><input type="checkbox"> Đọc to từ vừa vượt qua</label></div>';
+    '<div class="gbar"><span class="small muted">Nhảy: <b>Space</b> / <b>↑</b> hoặc chạm vào màn hình · Rơi nhanh: <b>↓</b></span><span class="grow"></span><span class="gspd small"><span class="muted">Tốc độ:</span>' + GAME_SPEEDS.map((v, i) => '<button type="button" class="chip" data-spd="' + i + '">' + v[0] + '</button>').join('') + '</span><label class="small gsnd"><input type="checkbox"> Đọc to từ vừa vượt qua</label></div>';
   const live = () => !!(el.isConnected && el.parentElement && el.parentElement.hasAttribute('data-game-slot'));
   const cv = el.querySelector('canvas'), ctx = cv.getContext('2d'), ov = el.querySelector('.gov'), snd = el.querySelector('.gsnd input');
-  const LS_BEST = 'dino-best-' + owner, LS_SND = 'dino-sound';
+  const LS_BEST = 'dino-best-' + owner, LS_SND = 'dino-sound', LS_SPD = 'dino-speed';
+  let spd = 2; try { const v = localStorage.getItem(LS_SPD); if (v !== null && GAME_SPEEDS[+v]) spd = +v; } catch (e) { }
+  const paintSpd = () => el.querySelectorAll('[data-spd]').forEach(b => b.classList.toggle('on', +b.dataset.spd === spd));
+  el.querySelector('.gspd').addEventListener('click', e => { const b = e.target.closest('[data-spd]'); if (!b) return; spd = +b.dataset.spd; try { localStorage.setItem(LS_SPD, String(spd)); } catch (e2) { } paintSpd(); b.blur(); });
+  paintSpd();
   let best = +(localStorage.getItem(LS_BEST) || 0) || 0;
   try { snd.checked = localStorage.getItem(LS_SND) !== '0'; } catch (e) { snd.checked = true; }
   snd.onchange = () => { try { localStorage.setItem(LS_SND, snd.checked ? '1' : '0'); } catch (e) { } };
   const H = 300, GROUND = 252; let W = 900, k = 1, sf = 1;
   const g = { state: 'ready', score: 0, speed: 6, t: 0, obs: [], clouds: [], floats: [], passed: [], hit: null, overAt: 0, words: [], sample: false, bag: [], last: null, groundX: 0 };
-  const dino = { x: 56, y: GROUND - 47, vy: 0, duck: false, jumping: false, frame: 0, ft: 0 };
+  const dino = { x: 64, y: GROUND - DH, vy: 0, duck: false, jumping: false, frame: 0, ft: 0 };
   let raf = null, lastTs = 0;
   const font = (w, z) => w + ' ' + z + 'px "Be Vietnam Pro", system-ui, sans-serif';
   function size() {
@@ -1069,40 +1077,42 @@ function buildGame(owner) {
   function spawn() {
     const w = nextWord(); const tw = tagW(w.text);
     let o;
-    if (g.score > 250 && Math.random() < 0.28) { const high = Math.random() < 0.4; o = { kind: 'bird', w: 42, h: 28, y: high ? GROUND - 96 : GROUND - 34, high }; }
+    if (g.score > 250 && Math.random() < 0.28) { const high = Math.random() < 0.4; o = { kind: 'bird', w: 42, h: 28, y: high ? GROUND - 104 : GROUND - 34, high }; }
     else { const n = g.score > 120 && Math.random() < 0.35 ? (Math.random() < 0.5 ? 2 : 3) : 1; const ch = 34 + Math.random() * 18; o = { kind: 'cactus', n, w: n * 20 + (n - 1) * 4, h: ch, y: GROUND - ch }; }
     o.x = W + 20; o.word = w; o.tw = tw; o.passed = false; o.flap = 0;
-    g.obs.push(o);
-    const minGap = (230 + g.speed * 20) * (0.9 + Math.random() * 0.8);
-    g.nextGap = Math.max(minGap, tw / 2 + 60 + o.w);
+    g.obs.push(o); g.lastBig = o;
+    const air = 38 * g.speed;  // quãng đường bay được trong 1 lần nhảy
+    const gap = Math.max(air * (2.4 + Math.random() * 1.3), tw / 2 + 90 + o.w, 420);
+    g.nextGap = gap;
+    if (Math.random() < 0.75) {
+      const sw = 14 + Math.random() * 9, sh = 10 + Math.random() * 7;
+      g.obs.push({ kind: 'stone', w: sw, h: sh, y: GROUND - sh, x: o.x + o.w + (gap - o.w) / 2 - sw / 2 + (Math.random() - 0.5) * air * 0.3, tw: 0, passed: false, seed: Math.random() });
+    }
   }
   function reset() {
-    loadWords(); g.score = 0; g.speed = 6.2 * sf; g.t = 0; g.obs = []; g.floats = []; g.passed = []; g.hit = null; g.nextGap = 120;
+    loadWords(); g.lastBig = null; g.score = 0; g.speed = 6.2 * sf; g.t = 0; g.obs = []; g.floats = []; g.passed = []; g.hit = null; g.nextGap = 120;
     g.clouds = [0, 1, 2].map(i => ({ x: 120 + i * 300 + Math.random() * 100, y: 30 + Math.random() * 60 }));
-    Object.assign(dino, { y: GROUND - 47, vy: 0, duck: false, jumping: false });
+    Object.assign(dino, { y: GROUND - DH, vy: 0, duck: false, jumping: false });
   }
   function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); ctx.fill(); }
   function drawDino() {
-    const x = dino.x, dead = g.state === 'over', run = g.state === 'play' && !dino.jumping, f = run ? dino.frame : 0;
-    ctx.fillStyle = '#41503b';
-    if (dino.duck && !dino.jumping) {
-      const y = GROUND - 30;
-      ctx.beginPath(); ctx.moveTo(x - 4, y + 10); ctx.lineTo(x + 10, y + 8); ctx.lineTo(x + 10, y + 18); ctx.closePath(); ctx.fill();
-      rr(x + 6, y + 6, 34, 18, 8); rr(x + 34, y + 2, 24, 15, 6);
-      ctx.fillRect(x + 12, y + 22, 5, f ? 8 : 5); ctx.fillRect(x + 26, y + 22, 5, f ? 5 : 8);
-      ctx.fillStyle = '#fff'; ctx.fillRect(x + 48, y + 5, 4, 4); return;
-    }
-    const y = dino.y;
-    ctx.beginPath(); ctx.moveTo(x - 2, y + 18); ctx.lineTo(x + 14, y + 22); ctx.lineTo(x + 14, y + 32); ctx.closePath(); ctx.fill();
-    rr(x + 9, y + 17, 25, 21, 8); ctx.fillRect(x + 23, y + 10, 9, 12); rr(x + 22, y, 24, 17, 6);
-    ctx.fillRect(x + 31, y + 24, 7, 3); ctx.fillRect(x + 36, y + 24, 2, 5);
-    const a = f ? 4 : 0; ctx.fillRect(x + 13, y + 36, 5, 11 - a); ctx.fillRect(x + 24, y + 36, 5, 7 + a);
-    ctx.fillRect(x + 13, y + 45 - a, 8, 2); ctx.fillRect(x + 24, y + 41 + a, 8, 2);
-    ctx.fillStyle = '#fff'; ctx.fillRect(x + 35, y + 4, 5, 5);
-    ctx.fillStyle = '#41503b';
-    if (dead) { ctx.strokeStyle = '#41503b'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x + 35.5, y + 4.5); ctx.lineTo(x + 39.5, y + 8.5); ctx.moveTo(x + 39.5, y + 4.5); ctx.lineTo(x + 35.5, y + 8.5); ctx.stroke(); }
-    else ctx.fillRect(x + 37, y + 5, 2, 2);
-    ctx.fillStyle = '#f3efe6'; ctx.fillRect(x + 40, y + 12, 6, 2);
+    const duck = dino.duck && !dino.jumping, dead = g.state === 'over', run = g.state === 'play' && !dino.jumping;
+    const bob = run ? Math.abs(Math.sin(g.t * 0.32)) * 4 : 0;
+    const h = duck ? DH * 0.7 : DH, w = duck ? DW * 1.12 : DW;
+    const y = (dino.jumping ? dino.y + DH : GROUND) - h - bob, x = dino.x;
+    ctx.save(); ctx.translate(x + w / 2, y + h / 2);
+    ctx.rotate(dead ? 0.32 : dino.jumping ? Math.max(-0.22, Math.min(0.22, dino.vy * 0.02)) : run ? Math.sin(g.t * 0.32) * 0.07 : 0);
+    if (DOG_IMG.complete && DOG_IMG.naturalWidth) ctx.drawImage(DOG_IMG, -w / 2, -h / 2, w, h);
+    else { ctx.fillStyle = '#d9b77f'; rr(-w / 2, -h / 2, w, h, 18); }
+    ctx.restore();
+    ctx.font = font(800, 14); const lw = ctx.measureText(DOG_LABEL).width;
+    const lx = Math.max(lw / 2 + 6, x + w / 2), ly = y - 6;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.lineJoin = 'round'; ctx.lineWidth = 4; ctx.strokeStyle = '#fbfaf6'; ctx.strokeText(DOG_LABEL, lx, ly);
+    ctx.fillStyle = '#1f2328'; ctx.fillText(DOG_LABEL, lx, ly); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  }
+  function drawStone(o) {
+    ctx.fillStyle = '#9b958a'; ctx.beginPath(); ctx.moveTo(o.x, GROUND); ctx.quadraticCurveTo(o.x + 1, o.y + 2, o.x + o.w * 0.45, o.y); ctx.quadraticCurveTo(o.x + o.w, o.y + 1, o.x + o.w, GROUND); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#b9b3a8'; ctx.beginPath(); ctx.ellipse(o.x + o.w * 0.42, o.y + o.h * 0.35, o.w * 0.18, o.h * 0.16, -0.3, 0, Math.PI * 2); ctx.fill();
   }
   function drawCactus(o) {
     ctx.fillStyle = '#5d8f45';
@@ -1132,8 +1142,8 @@ function buildGame(owner) {
     ctx.fillStyle = '#e6e2d9'; g.clouds.forEach(c => { rr(c.x, c.y, 54, 14, 7); rr(c.x + 12, c.y - 8, 26, 14, 7); });
     ctx.fillStyle = '#7a756b'; ctx.fillRect(0, GROUND, W, 1.5);
     ctx.fillStyle = '#c9c3b7'; for (let x = -((g.groundX) % 46); x < W; x += 46) { ctx.fillRect(x, GROUND + 7, 9, 1.5); ctx.fillRect(x + 23, GROUND + 14, 4, 1.5); }
-    g.obs.forEach(o => { o.kind === 'bird' ? drawBird(o) : drawCactus(o); });
-    g.obs.forEach(drawTag);
+    g.obs.forEach(o => { o.kind === 'bird' ? drawBird(o) : o.kind === 'stone' ? drawStone(o) : drawCactus(o); });
+    g.obs.forEach(o => { if (o.word) drawTag(o); });
     drawDino();
     ctx.textBaseline = 'top'; ctx.font = font(600, 16); ctx.fillStyle = '#9a948a'; ctx.textAlign = 'right';
     ctx.fillText('KỶ LỤC ' + String(Math.floor(best)).padStart(5, '0') + '    ' + String(Math.floor(g.score)).padStart(5, '0'), W - 16, 14);
@@ -1146,20 +1156,21 @@ function buildGame(owner) {
     ctx.textBaseline = 'alphabetic';
   }
   const hits = (o) => {
-    const dx = dino.x + 12, dw = dino.duck && !dino.jumping ? 44 : 26, dy = dino.duck && !dino.jumping ? GROUND - 26 : dino.y + 6, dh = dino.duck && !dino.jumping ? 24 : 38;
-    const ox = o.x + 4, ow = o.w - 8, oy = (o.kind === 'bird' ? o.y + 6 : o.y + 4), oh = (o.kind === 'bird' ? 14 : o.h - 4);
+    const duck = dino.duck && !dino.jumping;
+    const dx = dino.x + 9, dw = duck ? DW * 1.12 - 16 : DW - 18, dy = duck ? GROUND - DH * 0.7 + 6 : dino.y + 10, dh = duck ? DH * 0.7 - 8 : DH - 12;
+    const ox = o.x + (o.kind === 'stone' ? 3 : 4), ow = o.w - (o.kind === 'stone' ? 6 : 8), oy = (o.kind === 'bird' ? o.y + 6 : o.y + (o.kind === 'stone' ? 3 : 4)), oh = (o.kind === 'bird' ? 14 : o.h - 4);
     return dx < ox + ow && dx + dw > ox && dy < oy + oh && dy + dh > oy;
   };
   function step(f) {
-    g.t += f; g.speed = Math.min(13.5 * sf, 6.2 * sf + g.t * 0.0013 * sf);
+    g.t += f; g.speed = GAME_SPEEDS[spd][1] * sf * Math.min(13.5, 6.2 + g.t * 0.0013);
     g.score += g.speed * f * 0.03 / sf; g.groundX += g.speed * f;
     g.clouds.forEach(c => { c.x -= g.speed * f * 0.2; if (c.x < -70) { c.x = W + Math.random() * 200; c.y = 26 + Math.random() * 70; } });
-    if (dino.jumping) { dino.vy += (dino.duck ? 2.2 : 0.62) * f; dino.y += dino.vy * f; if (dino.y >= GROUND - 47) { dino.y = GROUND - 47; dino.vy = 0; dino.jumping = false; } }
+    if (dino.jumping) { dino.vy += (dino.duck ? 2.2 : 0.62) * f; dino.y += dino.vy * f; if (dino.y >= GROUND - DH) { dino.y = GROUND - DH; dino.vy = 0; dino.jumping = false; } }
     dino.ft += f; if (dino.ft > 6) { dino.ft = 0; dino.frame ^= 1; }
     g.obs.forEach(o => { o.x -= (g.speed + (o.kind === 'bird' ? 0.6 : 0)) * f; o.flap += f; });
-    const last = g.obs[g.obs.length - 1]; if (!last || last.x < W + 20 - g.nextGap) spawn();
+    const last = g.lastBig; if (!last || last.x < W + 20 - g.nextGap) spawn();
     for (const o of g.obs) {
-      if (!o.passed && o.x + o.w < dino.x + 10) { o.passed = true; g.passed.push(o.word); g.floats.push({ w: o.word, life: 90 }); if (g.floats.length > 1) g.floats.shift(); if (snd.checked) speak(o.word.text); }
+      if (!o.passed && o.x + o.w < dino.x + 10) { o.passed = true; if (!o.word) continue; g.passed.push(o.word); g.floats.push({ w: o.word, life: 90 }); if (g.floats.length > 1) g.floats.shift(); if (snd.checked) speak(o.word.text); }
       if (!o.passed && hits(o)) { over(o); return; }
     }
     g.obs = g.obs.filter(o => o.x + Math.max(o.w, o.tw / 2 + o.w / 2) > -10);
@@ -1176,9 +1187,9 @@ function buildGame(owner) {
   function showOv(html) { ov.innerHTML = html; ov.hidden = !html; }
   function menu() {
     loadWords();
-    showOv('<div class="gcard"><div class="gtitle">Khủng long học từ</div><p>Mỗi chướng ngại vật mang một từ em đã học. Nhảy qua để “thu” từ, va vào thì xem lại nghĩa của từ đó nhé!</p>' +
+    showOv('<div class="gcard"><div class="gtitle">Cún con học từ</div><p>Mỗi chướng ngại vật lớn mang một từ em đã học. Nhảy qua để “thu” từ, va vào thì xem lại nghĩa của từ đó. Cẩn thận cả những hòn đá nhỏ ở giữa nhé!</p>' +
       '<p class="small muted">' + (g.sample ? 'Chưa có từ của tuần nên đang dùng vài từ mẫu.' : g.words.length + ' từ / cụm từ sẽ xuất hiện ngẫu nhiên.') + (best ? ' · Kỷ lục: ' + Math.floor(best) : '') + '</p>' +
-      '<button class="btn pri" data-g="start">' + ICON.play + 'Bắt đầu</button><div class="small muted" style="margin-top:10px">Nhấn Space hoặc chạm để nhảy</div></div>');
+      '<button class="btn pri" data-g="start">' + ICON.play + 'Bắt đầu</button><div class="small muted" style="margin-top:10px">Nhấn Space hoặc chạm để nhảy · Chỉnh tốc độ ở thanh bên dưới</div></div>');
   }
   function start() { reset(); g.state = 'play'; showOv(''); try { if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); } catch (e) { } kick(); jump(); }
   function pause() { if (g.state !== 'play') return; g.state = 'pause'; showOv('<div class="gcard sm"><div class="gtitle">Tạm dừng</div><button class="btn pri" data-g="resume">' + ICON.play + 'Chơi tiếp</button></div>'); }
@@ -1187,6 +1198,12 @@ function buildGame(owner) {
     g.state = 'over'; g.hit = o.word; g.overAt = Date.now();
     const newBest = g.score > best; if (newBest) { best = g.score; try { localStorage.setItem(LS_BEST, String(Math.floor(best))); } catch (e) { } }
     const w = o.word;
+    if (!w) {
+      showOv('<div class="gcard"><div class="gtitle">Úi! Cún vấp phải hòn đá nhỏ</div><p class="small muted">Nhớ nhảy qua cả những hòn đá nhỏ nằm giữa các từ nhé.</p>' +
+        '<div class="gscore">' + (newBest ? '🎉 Kỷ lục mới: ' : 'Điểm: ') + Math.floor(g.score) + (newBest ? '' : ' · Kỷ lục: ' + Math.floor(best)) + ' · Vượt qua ' + g.passed.length + ' từ</div>' +
+        (g.passed.length ? '<div class="gchips">' + chips(g.passed) + '</div>' : '') + '<button class="btn pri" data-g="start">' + ICON.play + 'Chơi lại</button></div>');
+      draw(); return;
+    }
     showOv('<div class="gcard"><div class="small muted">Em vừa va vào từ</div>' +
       '<div class="ghit">' + esc(w.text) + ' <button class="spk" data-act="speak" data-t="' + esc(w.text) + '" title="Nghe phát âm">' + ICON.sound + '</button></div>' +
       (w.ipa || w.pos ? '<div class="ipa">' + (w.pos ? '<span class="wpos">' + esc(w.pos) + '</span>' : '') + esc(w.ipa || '') + '</div>' : '') +
@@ -1297,7 +1314,7 @@ function wordModal(ws, iid) {
 function vWeekly() {
   const act = activeWords(), up = upcomingWords(), old = expiredWords();
   const grid = (list, title, sub) => list.length ? '<h3 style="margin:24px 0 4px">' + title + ' <span class="tag">' + list.length + '</span></h3>' + (sub ? '<div class="small muted" style="margin-bottom:10px">' + sub + '</div>' : '') + '<div class="wgrid">' + list.map(x => wordCard(x, true, true)).join('') + '</div>' : '';
-  return '<div class="head"><div><h1>Từ vựng & cụm từ của tuần</h1><div class="sub">Tất cả học sinh đều thấy ở đầu trang. Mỗi từ hiện <b>7 ngày</b> kể từ ngày bạn thêm (hoặc ngày bạn chọn), rồi tự hết hạn — các từ khác không bị ảnh hưởng.</div></div><div class="row"><button class="btn" data-act="nav" data-v="game">🦖 Chơi thử trò chơi</button><button class="btn pri" data-act="wAdd">' + ICON.plus + 'Thêm từ / cụm từ</button></div></div>' +
+  return '<div class="head"><div><h1>Từ vựng & cụm từ của tuần</h1><div class="sub">Tất cả học sinh đều thấy ở đầu trang. Mỗi từ hiện <b>7 ngày</b> kể từ ngày bạn thêm (hoặc ngày bạn chọn), rồi tự hết hạn — các từ khác không bị ảnh hưởng.</div></div><div class="row"><button class="btn" data-act="nav" data-v="game">🐶 Chơi thử trò chơi</button><button class="btn pri" data-act="wAdd">' + ICON.plus + 'Thêm từ / cụm từ</button></div></div>' +
     (act.length ? grid(act, 'Học sinh đang thấy', 'Từ mới nhất ở trước. Bấm “Gia hạn” để cho một từ hiện thêm 7 ngày tính từ hôm nay.')
       : '<div class="card" style="margin-top:16px"><div class="empty"><h3>Hiện chưa có từ nào đang hiện</h3><p>Thêm từ hoặc cụm từ, kèm nghĩa và câu ví dụ. Mỗi từ sẽ hiện cho học sinh trong 7 ngày.</p><div class="row" style="justify-content:center;margin-top:12px"><button class="btn pri" data-act="wAdd">' + ICON.plus + 'Thêm từ đầu tiên</button></div></div></div>') +
     grid(up, 'Đã lên lịch', 'Học sinh chưa thấy cho đến ngày bắt đầu.') +

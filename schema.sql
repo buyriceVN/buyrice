@@ -69,7 +69,8 @@ begin
                   where col = 'weekly' and data->>'weekStart' <= to_char((now() at time zone 'Asia/Bangkok')::date, 'YYYY-MM-DD')), '{}'::jsonb),
     'lessons',  coalesce((select jsonb_object_agg(id, (data - 'pages') || jsonb_build_object('pageCount', case when jsonb_typeof(data->'pages') = 'array' then jsonb_array_length(data->'pages') else 0 end))
                   from public.docs where col = 'lessons' and public._lesson_visible(data, sid)), '{}'::jsonb),
-    'wordsets', coalesce((select jsonb_object_agg(id, data) from public.docs where col = 'wordsets'), '{}'::jsonb)
+    'wordsets', coalesce((select jsonb_object_agg(id, data) from public.docs where col = 'wordsets'), '{}'::jsonb),
+    'rpgsounds', coalesce((select jsonb_object_agg(id, data) from public.docs where col = 'rpgsounds'), '{}'::jsonb)
   );
 end $$;
 

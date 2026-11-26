@@ -1,0 +1,4 @@
+{
+  "_huong_dan": "Thả file âm thanh (mp3/m4a/ogg/wav) vào thư mục rpg/sounds/ rồi thêm một dòng: \"tên_key\": { \"file\": \"ten-file.mp3\", \"volume\": 0.8, \"loop\": false }. Key bắt đầu bằng dấu _ sẽ bị bỏ qua. File giáo viên tải lên ở trang 🎵 Âm thanh game được ưu tiên hơn file ở đây. Chỉ dùng file bạn có quyền dùng (tự thu, Pixabay, Freesound CC0).",
+  "_vi_du": { "file": "iced-capp-sip.mp3", "volume": 0.8 }
+}

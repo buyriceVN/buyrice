@@ -4,26 +4,16 @@
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   R.esc = esc;
 
-  /* ---------- giọng đọc (Web Speech API, có dự phòng) ---------- */
-  R.canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+  /* giọng đọc: xem voice.js (R.say, R.canSpeak) */
   R.canListen = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  R.speak = function (text, pitch) {
-    if (!R.canSpeak || !text) return;
-    if (window.appSpeak) { window.appSpeak(text, { pitch: pitch || 1, rate: 0.92 }); return; }
-    try {
-      const u = new SpeechSynthesisUtterance(String(text).replace(/[“”]/g, '"')); u.lang = 'en-US'; u.rate = 0.92; u.pitch = pitch || 1;
-      const vs = speechSynthesis.getVoices(); const v = vs.find(x => /^en[-_](US|CA)/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang)); if (v) u.voice = v;
-      speechSynthesis.cancel(); speechSynthesis.speak(u);
-    } catch (e) { }
-  };
-  try { if (R.canSpeak) speechSynthesis.getVoices(); } catch (e) { }
 
   /* so khớp câu nói/gõ với các lựa chọn */
   const words = t => String(t).toLowerCase().replace(/[“”"'.,!?;:()]/g, ' ').replace(/\bi'm\b/g, 'i am').split(/\s+/).filter(Boolean);
   R.similarity = function (said, target) { const A = new Set(words(said)), B = words(target); if (!B.length || !A.size) return 0; let hit = 0; B.forEach(w => { if (A.has(w)) hit++; }); return hit / Math.max(B.length, A.size); };
 
   /* ---------- hộp thoại ----------
-     opts: { el, name, vi(), voice(), onItem(id), onPoints(n, label), onLearn(entry), onEnd(result) } */
+     opts: { el, name, vi(), voice(), onItem(id, sound), onPoints(n, label), onLearn(entry), onEnd(result), sfx(key), npc(id) }
+     bước thoại có thể có: who (id NPC khác trong chương đang nói chen vào), sound (key âm thanh), id (id câu thoại ổn định) */
   R.Dialogue = function (opts) {
     const el = opts.el; let D = null;
     const fill = t => String(t || '').replace(/\{name\}/g, opts.name);
@@ -31,16 +21,18 @@
       D = { npc, steps, i: 0, phase: '', line: null, picked: null, wrong: {}, hint: false, tip: null, better: null, learned: 0, miss: 0, meta: meta || {} };
       el.hidden = false; run();
     }
-    const pitchOf = who => { const n = who || D.npc; const look = R.LOOKS[(n && (n.voice || n.look)) || ''] || {}; return look.pitch || 1; };
+    const speaker = who => (who && opts.npc && opts.npc(who)) || D.npc;
     const nameOf = () => D.npc.name;
+    const sfx = k => { if (k && opts.sfx) opts.sfx(k); };
+    const sayLine = l => { if (l && opts.voice()) R.say(l.en, { who: speaker(l.who), id: l.id }); };
     function run() {
       D.hint = false; D.tip = null; D.better = null; D.retry = false;
-      while (D.i < D.steps.length && D.steps[D.i].t === 'i') { opts.onItem(D.steps[D.i].item); D.i++; }
+      while (D.i < D.steps.length && D.steps[D.i].t === 'i') { opts.onItem(D.steps[D.i].item, D.steps[D.i].sound); D.i++; }
       if (D.i >= D.steps.length) return end(true);
       const st = D.steps[D.i];
-      if (st.t === 's') { D.line = { en: fill(st.en), vi: fill(st.vi) }; D.picked = null; D.wrong = {}; D.phase = 'line'; if (opts.voice()) R.speak(D.line.en, pitchOf()); const nx = D.steps[D.i + 1]; if (nx && nx.t === 'c') { D.i++; D.phase = 'choose'; } }
-      else if (st.t === 'c') { D.phase = 'choose'; D.picked = null; D.wrong = {}; }
-      else if (st.t === 'n') { D.phase = 'narr'; }
+      if (st.t === 's') { D.line = { en: fill(st.en), vi: fill(st.vi), id: st.id, who: st.who }; D.picked = null; D.wrong = {}; D.phase = 'line'; sfx(st.sound); sayLine(D.line); const nx = D.steps[D.i + 1]; if (nx && nx.t === 'c') { D.i++; D.phase = 'choose'; } }
+      else if (st.t === 'c') { D.phase = 'choose'; D.picked = null; D.wrong = {}; sfx(st.sound); }
+      else if (st.t === 'n') { D.phase = 'narr'; sfx(st.sound); }
       paint();
     }
     function next() {
@@ -51,7 +43,8 @@
       const st = D.steps[D.i]; if (!st || st.t !== 'c' || D.phase !== 'choose' || D.wrong[k] || !st.opts[k]) return;
       const o = st.opts[k]; const first = !Object.keys(D.wrong).length;
       D.picked = { en: fill(o.en), ok: o.ok };
-      if (o.r) { D.line = { en: fill(o.r[0]), vi: fill(o.r[1]) }; if (opts.voice()) setTimeout(() => R.speak(D.line.en, pitchOf()), 60); }
+      if (o.r) { const l = D.line = { en: fill(o.r[0]), vi: fill(o.r[1]), id: o.rid, who: o.who }; setTimeout(() => { if (D && D.line === l) sayLine(l); }, 60); }
+      sfx(o.sound || (o.ok >= 1 ? 'correct' : o.ok > 0 ? 'funny' : 'wrong'));
       if (o.ok >= 1) {
         D.phase = 'react'; D.tip = o.tip || null; const pts = first ? 10 : 4; opts.onPoints(pts, first ? '+10 🍁' : '+4 🍁');
         opts.onLearn({ en: fill(o.en), tip: o.tip || st.hint || '' }); D.learned++;
@@ -61,13 +54,13 @@
       } else { D.wrong[k] = 1; D.miss++; D.phase = 'choose'; D.tip = o.tip || st.hint || null; D.retry = true; if (opts.onWrong) opts.onWrong(); }
       paint();
     }
-    function end(completed) { const r = { completed, learned: D ? D.learned : 0, miss: D ? D.miss : 0, npc: D && D.npc, meta: D && D.meta }; D = null; el.hidden = true; el.innerHTML = ''; try { speechSynthesis.cancel(); } catch (e) { } opts.onEnd(r); }
+    function end(completed) { const r = { completed, learned: D ? D.learned : 0, miss: D ? D.miss : 0, npc: D && D.npc, meta: D && D.meta }; D = null; el.hidden = true; el.innerHTML = ''; if (R.stopSpeech) R.stopSpeech(); opts.onEnd(r); }
     function paint() {
       const st = D.steps[D.i], vi = opts.vi();
       let h = '<div class="tr-dhead"><span class="tr-dname">' + (D.npc.object ? ({ phone: '📱 ', kiosk: '🖥️ ', seat: '💺 ' }[D.npc.kind] || '👉 ') : '💬 ') + esc(nameOf()) + '</span><span class="grow"></span><button class="tr-dx" data-d="quit" title="Rời cuộc trò chuyện">✕</button></div>';
       if (D.phase === 'narr') h += '<div class="tr-narr">' + esc(fill(st.vi)) + '</div>';
       if (D.picked) h += '<div class="tr-me"><b>' + esc(opts.name) + ':</b> ' + esc(D.picked.en) + '</div>';
-      if (D.line && D.phase !== 'narr') h += '<div class="tr-line"><span class="tr-en">' + esc(D.line.en) + '</span>' + (R.canSpeak ? ' <button class="tr-sp" data-d="say" title="Nghe phát âm">🔊</button>' : '') + (vi ? '<div class="tr-vi">' + esc(D.line.vi) + '</div>' : '<button class="tr-vb" data-d="vi1">Xem nghĩa tiếng Việt</button>') + '</div>';
+      if (D.line && D.phase !== 'narr') h += '<div class="tr-line">' + (D.line.who && speaker(D.line.who) !== D.npc ? '<b class="tr-who">' + esc(speaker(D.line.who).name) + ':</b> ' : '') + '<span class="tr-en">' + esc(D.line.en) + '</span>' + (R.canSpeak ? ' <button class="tr-sp" data-d="say" title="Nghe phát âm">🔊</button>' : '') + (vi ? '<div class="tr-vi">' + esc(D.line.vi) + '</div>' : '<button class="tr-vb" data-d="vi1">Xem nghĩa tiếng Việt</button>') + '</div>';
       if (D.phase === 'choose') {
         h += '<div class="tr-q">' + (D.retry && Object.keys(D.wrong).length ? '<span class="tr-bad">Chưa ổn lắm, thử câu khác nhé!</span>' : 'Em trả lời thế nào?') + '</div>';
         if (D.tip && Object.keys(D.wrong).length) h += '<div class="tr-tip">💡 ' + esc(D.tip) + '</div>';
@@ -102,8 +95,8 @@
       const b = e.target.closest('[data-d]'); if (!b || !D || b.disabled) return; const d = b.dataset.d;
       if (d === 'next') next();
       else if (d === 'opt') choose(+b.dataset.k);
-      else if (d === 'say' && D.line) R.speak(D.line.en, pitchOf());
-      else if (d === 'saybetter' && D.better) R.speak(D.better, 1);
+      else if (d === 'say' && D.line) R.say(D.line.en, { who: speaker(D.line.who), id: D.line.id });
+      else if (d === 'saybetter' && D.better) R.say(D.better, { who: null });
       else if (d === 'vi1' && D.line) b.outerHTML = '<div class="tr-vi">' + esc(D.line.vi) + '</div>';
       else if (d === 'hint') { D.hint = true; paint(); }
       else if (d === 'mic') mic(b);

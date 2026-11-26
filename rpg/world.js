@@ -11,6 +11,7 @@
     toronto: { wall: '#6b5747', wallTop: '#8b7563', wood: '#caa27a', woodLine: '#b98f66', tile: '#eef2f6', tileLine: '#dbe2ea', seat: '#636e72' }
   };
 
+  R.THEMES = THEMES;
   function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   R.rr = rr;
   const FONT = (w, z) => w + ' ' + z + 'px "Be Vietnam Pro", system-ui, sans-serif';
@@ -54,7 +55,7 @@
   };
 
   /* ---------- vẽ bản đồ tĩnh (vẽ 1 lần vào canvas phụ) ---------- */
-  R.renderMap = function (world, scale) {
+  R.renderMap = function (world, scale, floorOnly) {
     const ch = world.ch, th = THEMES[ch.theme] || THEMES.home, W = world.W, H = world.H;
     const cv = document.createElement('canvas'); cv.width = Math.ceil(W * TS * scale); cv.height = Math.ceil(H * TS * scale);
     const c = cv.getContext('2d'); c.scale(scale, scale);
@@ -76,6 +77,7 @@
       const t = world.at(x, y), X = x * TS, Y = y * TS;
       if (t === ' ') { c.fillStyle = ch.theme === 'toronto' ? '#e9f2fb' : ch.theme === 'plane' ? '#7fb2e5' : '#2d3a2e'; c.fillRect(X, Y, TS, TS); if (ch.theme !== 'toronto' && ch.theme !== 'plane') { c.fillStyle = '#3c4b3d'; c.fillRect(X + hash(x, y) * 30, Y + hash(y, x) * 30, 10, 10); } continue; }
       if ('.,:~_R'.includes(t)) { floor(t, x, y); continue; }
+      if (floorOnly) { floor(t === 'D' ? floorOf(x, y) : (t === '#' || t === 'W') ? ',' : floorOf(x, y), x, y); continue; }
       if (t === '#' || t === 'W') {
         c.fillStyle = th.wall; c.fillRect(X, Y, TS, TS); c.fillStyle = th.wallTop; c.fillRect(X, Y, TS, TS * 0.35);
         c.fillStyle = 'rgba(0,0,0,.12)'; c.fillRect(X, Y + TS - 4, TS, 4);
@@ -94,6 +96,7 @@
       else if (t === 'Q') { c.strokeStyle = '#d63031'; c.lineWidth = 4; c.beginPath(); c.moveTo(X, Y + TS / 2); c.lineTo(X + TS, Y + TS / 2); c.stroke(); c.fillStyle = '#b2bec3'; c.beginPath(); c.arc(X + TS / 2, Y + TS / 2, 7, 0, 7); c.fill(); c.fillStyle = '#636e72'; c.beginPath(); c.arc(X + TS / 2, Y + TS / 2, 4, 0, 7); c.fill(); }
       else if (t === 'O') { c.fillStyle = '#b2bec3'; c.fillRect(X, Y, TS, TS); }
     }
+    if (floorOnly) return cv;
     // tháp CN mini (2x2 ô 'O')
     for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (world.at(x, y) === 'O' && world.at(x - 1, y) !== 'O' && world.at(x, y - 1) !== 'O') {
       const cx = (x + 1) * TS, cy = (y + 1) * TS; c.fillStyle = '#95a5a6'; c.beginPath(); c.arc(cx, cy, TS * .9, 0, 7); c.fill(); c.strokeStyle = '#636e72'; c.lineWidth = 4; c.stroke();

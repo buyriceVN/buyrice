@@ -1357,15 +1357,15 @@ function buildGame(owner) {
   return el;
 }
 
-/* ============ game nhập vai: Du học Toronto (thế giới 2D – mã trong thư mục rpg/) ============ */
-const RPG_VER = '2';
+/* ============ game nhập vai: Du học Toronto (góc nhìn thứ nhất 3D – mã trong thư mục rpg/) ============ */
+const RPG_VER = '3';
 let rpgLoading = null;
 function loadRpg() {
   if (window.TorontoRPG && window.TorontoRPG.open) return Promise.resolve();
   if (rpgLoading) return rpgLoading;
   const add = (tag, attrs) => new Promise((ok, no) => { const e = document.createElement(tag); Object.assign(e, attrs); e.onload = ok; e.onerror = no; document.head.appendChild(e); });
   rpgLoading = add('link', { rel: 'stylesheet', href: 'rpg/rpg.css?v=' + RPG_VER })
-    .then(() => ['data', 'world', 'dialogue', 'game'].reduce((p, f) => p.then(() => add('script', { src: 'rpg/' + f + '.js?v=' + RPG_VER })), Promise.resolve()));
+    .then(() => ['vendor/three.min', 'data', 'world', 'dialogue', 'scene3d', 'controls', 'game'].reduce((p, f) => p.then(() => (f.startsWith('vendor') && window.THREE) ? null : add('script', { src: 'rpg/' + f + '.js?v=' + RPG_VER })), Promise.resolve()));
   rpgLoading.catch(() => { rpgLoading = null; });
   return rpgLoading;
 }

@@ -117,7 +117,7 @@
 
   R.CHAPTERS = [
     {
-      id: 'visa', icon: '🛂', title: 'Xin visa du học', theme: 'home', map: map1(), spawn: [6, 7],
+      id: 'visa', icon: '🛂', title: 'Xin visa du học', theme: 'home', map: map1(), spawn: [9, 9],
       intro: 'Một buổi sáng ở Việt Nam. Em vừa nhận được email từ trường cao đẳng ở Toronto! Cả nhà quyết định chỉ nói tiếng Anh với em để em luyện trước khi đi.',
       signs: [{ x: 6, y: 0.1, text: 'NHÀ CỦA EM', small: 1 }, { x: 28, y: 0.1, text: 'VISA APPLICATION CENTRE' }, { x: 17, y: 1.6, text: 'Phố Hàng Bánh Mì', small: 1 }, { x: 32.5, y: 5.5, text: '📷 Biometrics', small: 1 }],
       zones: [{ x: 1, y: 1, w: 11, h: 10, name: 'Nhà em' }, { x: 13, y: 2, w: 8, h: 10, name: 'Đường phố' }, { x: 22, y: 1, w: 13, h: 12, name: 'Trung tâm visa' }],
@@ -261,7 +261,7 @@
       ]
     },
     {
-      id: 'flight', icon: '✈️', title: 'Trên máy bay', theme: 'plane', map: map3(), spawn: [2, 3],
+      id: 'flight', icon: '✈️', title: 'Trên máy bay', theme: 'plane', map: map3(), spawn: [1, 3],
       intro: 'Em lên máy bay. Hành trình hơn 20 tiếng, có một lần quá cảnh. Hãy tìm đúng ghế của mình nhé!',
       labels: seatLabels,
       signs: [{ x: 2.5, y: 0.2, text: 'GALLEY', small: 1 }],
@@ -273,7 +273,7 @@
         { id: 'o4', text: 'Nghe thông báo chuẩn bị hạ cánh', target: 'fa', auto: 1 }
       ],
       npcs: [
-        { id: 'fa', name: 'Flight attendant', look: 'fa', x: 3, y: 3, main: 1,
+        { id: 'fa', name: 'Flight attendant', look: 'fa', x: 4, y: 2, main: 1,
           talks: [
             { obj: 'o1', steps: [S('Hello! Welcome on board. Can I help you find your seat?', 'Xin chào! Chào mừng lên máy bay. Tôi giúp bạn tìm chỗ nhé?'),
               C('Đọc số ghế: “My seat is 32A.”', [

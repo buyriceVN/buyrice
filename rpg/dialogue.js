@@ -9,6 +9,7 @@
   R.canListen = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
   R.speak = function (text, pitch) {
     if (!R.canSpeak || !text) return;
+    if (window.appSpeak) { window.appSpeak(text, { pitch: pitch || 1, rate: 0.92 }); return; }
     try {
       const u = new SpeechSynthesisUtterance(String(text).replace(/[“”]/g, '"')); u.lang = 'en-US'; u.rate = 0.92; u.pitch = pitch || 1;
       const vs = speechSynthesis.getVoices(); const v = vs.find(x => /^en[-_](US|CA)/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang)); if (v) u.voice = v;

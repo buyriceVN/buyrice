@@ -276,6 +276,7 @@ body.bfull{overflow:hidden}
 .gchips .chip{font-size:12px;padding:3px 10px}
 .gbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 14px;border-top:1px solid var(--line2);background:#fbfaf7}
 .gsnd{display:flex;align-items:center;gap:6px;cursor:pointer}
+.gtest{font-size:12px;padding:3px 10px}.gsndhint{color:#c0392b;flex-basis:100%}
 .gavbar,.gsetbar{border-top:1px solid var(--line2)}
 .gsets{display:flex;gap:6px;flex-wrap:wrap}.gsets .chip{font-size:12.5px;padding:4px 11px}.gsets .chip:disabled{opacity:.45;cursor:default}
 .gslist{margin-top:8px;border-top:1px solid var(--line2)}
@@ -1126,7 +1127,7 @@ function vGame() {
 function buildGame(owner) {
   const el = document.createElement('div'); el.className = 'game';
   el.innerHTML = '<div class="gwrap"><canvas></canvas><div class="gov"></div></div>' +
-    '<div class="gbar"><span class="small muted">Nhảy: <b>Space</b> / <b>↑</b> hoặc chạm · Bấm thêm lần nữa khi đang bay để <b>nhảy cao hơn</b> · Rơi nhanh: <b>↓</b></span><span class="grow"></span><span class="gspd small"><span class="muted">Tốc độ:</span>' + GAME_SPEEDS.map((v, i) => '<button type="button" class="chip" data-spd="' + i + '">' + v[0] + '</button>').join('') + '</span><label class="small gsnd"><input type="checkbox"> Đọc to từ vừa vượt qua</label></div>' +
+    '<div class="gbar"><span class="small muted">Nhảy: <b>Space</b> / <b>↑</b> hoặc chạm · Bấm thêm lần nữa khi đang bay để <b>nhảy cao hơn</b> · Rơi nhanh: <b>↓</b></span><span class="grow"></span><span class="gspd small"><span class="muted">Tốc độ:</span>' + GAME_SPEEDS.map((v, i) => '<button type="button" class="chip" data-spd="' + i + '">' + v[0] + '</button>').join('') + '</span><label class="small gsnd"><input type="checkbox"> Đọc to từ vừa vượt qua</label><button type="button" class="chip gtest">🔊 Thử tiếng</button><span class="small gsndhint" hidden></span></div>' +
     '<div class="gbar gsetbar"><span class="small muted">Bộ từ:</span><div class="gsets"></div></div>' +
     '<div class="gbar gavbar"><span class="small muted">Nhân vật:</span><div class="gavs">' + AVATARS.map(a => '<button type="button" class="gav" data-av="' + a.id + '" title="' + esc(a.name) + '"><img src="' + a.src + '" alt="' + esc(a.name) + '"></button>').join('') + '</div>' +
     '<input class="inp gl" maxlength="32" placeholder="Chữ trên đầu nhân vật…" aria-label="Chữ trên đầu nhân vật"><span class="grow"></span><span class="small muted gcred">Hình cún: © Nudaeng</span></div>';
@@ -1151,7 +1152,11 @@ function buildGame(owner) {
   paintAv();
   let best = +(localStorage.getItem(LS_BEST) || 0) || 0;
   try { snd.checked = localStorage.getItem(LS_SND) !== '0'; } catch (e) { snd.checked = true; }
-  snd.onchange = () => { try { localStorage.setItem(LS_SND, snd.checked ? '1' : '0'); } catch (e) { } };
+  snd.onchange = () => { try { localStorage.setItem(LS_SND, snd.checked ? '1' : '0'); } catch (e) { } if (snd.checked) sayText('Sound on!'); };
+  const sndHint = el.querySelector('.gsndhint');
+  const checkVoice = () => { const bad = !SPEECH_OK || !hasVoices(); sndHint.hidden = !bad; sndHint.textContent = !SPEECH_OK ? 'Trình duyệt này không đọc được tiếng. Hãy mở trang bằng Chrome (Android) hoặc Safari (iPhone), không dùng trình duyệt trong Zalo/Facebook.' : 'Chưa tìm thấy giọng đọc. Nếu không nghe tiếng: mở bằng Chrome/Safari, tắt chế độ im lặng và tăng âm lượng.'; };
+  setTimeout(checkVoice, 1500);
+  el.querySelector('.gtest').addEventListener('click', e => { e.currentTarget.blur(); if (!SPEECH_OK) { checkVoice(); toast('Trình duyệt này không hỗ trợ đọc phát âm.'); return; } sayText('Hello! Let us learn English!'); setTimeout(checkVoice, 800); });
   const H = 300, GROUND = 252; let W = 900, k = 1, sf = 1;
   const g = { state: 'ready', score: 0, speed: 6, t: 0, obs: [], clouds: [], floats: [], passed: [], hit: null, overAt: 0, words: [], sample: false, bag: [], last: null, groundX: 0 };
   const dino = { x: 64, y: GROUND - DH, vy: 0, duck: false, jumping: false, frame: 0, ft: 0 };
@@ -1289,7 +1294,7 @@ function buildGame(owner) {
     g.obs.forEach(o => { o.x -= (g.speed + (o.kind === 'bird' ? 0.6 : 0)) * f; o.flap += f; });
     const last = g.lastBig; if (!last || last.x < W + 20 - g.nextGap) spawn();
     for (const o of g.obs) {
-      if (!o.passed && o.x + o.w < dino.x + 10) { o.passed = true; if (!o.word) continue; g.passed.push(o.word); g.floats.push({ w: o.word, life: 90 }); if (g.floats.length > 1) g.floats.shift(); if (snd.checked) speak(o.word.text); }
+      if (!o.passed && o.x + o.w < dino.x + 10) { o.passed = true; if (!o.word) continue; g.passed.push(o.word); g.floats.push({ w: o.word, life: 90 }); if (g.floats.length > 1) g.floats.shift(); if (snd.checked) sayText(o.word.text); }
       if (!o.passed && hits(o)) { over(o); return; }
     }
     g.obs = g.obs.filter(o => o.x + Math.max(o.w, o.tw / 2 + o.w / 2) > -10);
@@ -1332,7 +1337,7 @@ function buildGame(owner) {
       (g.passed.length ? '<div class="gchips">' + chips(g.passed) + '</div>' : '') +
       '<button class="btn pri" data-g="start">' + ICON.play + 'Chơi lại</button></div>');
     draw();
-    if (snd.checked) speak(w.text);
+    if (snd.checked) sayText(w.text);
   }
   function jump() {
     if (g.state !== 'play') return;
@@ -1358,7 +1363,7 @@ function buildGame(owner) {
 }
 
 /* ============ game nhập vai: Du học Toronto (góc nhìn thứ nhất 3D – mã trong thư mục rpg/) ============ */
-const RPG_VER = '3';
+const RPG_VER = '4';
 let rpgLoading = null;
 function loadRpg() {
   if (window.TorontoRPG && window.TorontoRPG.open) return Promise.resolve();
@@ -1409,10 +1414,35 @@ function wordStatus(x) {
   const left = dayDiff(t, x.end);
   return '<span class="tag s3">' + (left <= 1 ? 'Hôm nay là ngày cuối' : 'Còn ' + left + ' ngày') + '</span>';
 }
-function speak(text) {
-  try { if (!('speechSynthesis' in window)) { toast('Trình duyệt này không hỗ trợ đọc phát âm.'); return; } const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.9; const v = speechSynthesis.getVoices().find(x => /^en[-_]US/i.test(x.lang)) || speechSynthesis.getVoices().find(x => /^en/i.test(x.lang)); if (v) u.voice = v; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { toast('Không phát được âm thanh.'); }
+/* ---- giọng đọc (Web Speech) – chạy được cả trên điện thoại ----
+   iPhone/Android chỉ cho phát tiếng sau khi người dùng chạm màn hình: lần chạm đầu tiên sẽ "mở khoá" giọng đọc,
+   sau đó game đọc được từ giữa lúc đang chạy. */
+const SPEECH_OK = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+let speechUnlocked = false, enVoice = null;
+function pickVoice() { try { const vs = speechSynthesis.getVoices(); enVoice = vs.find(x => /^en[-_]US/i.test(x.lang) && /google|samantha|siri|natural|enhanced/i.test(x.name)) || vs.find(x => /^en[-_](US|CA)/i.test(x.lang)) || vs.find(x => /^en/i.test(x.lang)) || null; } catch (e) { } }
+function hasVoices() { try { return SPEECH_OK && speechSynthesis.getVoices().length > 0; } catch (e) { return false; } }
+if (SPEECH_OK) { pickVoice(); try { speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch (e) { } }
+function unlockSpeech() {
+  if (!SPEECH_OK || speechUnlocked) return; speechUnlocked = true;
+  try { const u = new SpeechSynthesisUtterance('.'); u.volume = 0; u.lang = 'en-US'; speechSynthesis.speak(u); speechSynthesis.resume(); } catch (e) { }
 }
-try { if ('speechSynthesis' in window) speechSynthesis.getVoices(); } catch (e) { }
+['touchend', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, unlockSpeech, { capture: true, passive: true }));
+function sayText(text, o) {
+  if (!SPEECH_OK || !text) return false;
+  try {
+    const u = new SpeechSynthesisUtterance(String(text).replace(/[“”]/g, '"')); u.lang = 'en-US'; u.rate = (o && o.rate) || 0.9; u.pitch = (o && o.pitch) || 1; u.volume = 1;
+    if (!enVoice) pickVoice(); if (enVoice) u.voice = enVoice;
+    const go = () => { try { speechSynthesis.resume(); speechSynthesis.speak(u); } catch (e) { } };
+    // Chrome trên Android bỏ qua câu mới nếu gọi speak ngay sau cancel → chờ một chút
+    if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); setTimeout(go, 90); } else go();
+    return true;
+  } catch (e) { return false; }
+}
+window.appSpeak = sayText;
+function speak(text) {
+  if (!SPEECH_OK) { toast('Trình duyệt này không hỗ trợ đọc phát âm. Hãy mở trang bằng Chrome hoặc Safari.'); return; }
+  sayText(text);
+}
 function wordCard(x, teacher, showStatus) {
   const it = x.it; const A = 'data-w="' + x.ws + '" data-i="' + it.id + '"';
   return '<div class="card witem"><div class="row" style="gap:6px;margin-bottom:8px;align-items:center"><span class="wtype ' + (it.type === 'expr' ? 'expr' : 'word') + '" style="margin:0">' + (it.type === 'expr' ? 'Expression' : 'Word') + '</span>' + (showStatus ? '<span class="grow"></span>' + wordStatus(x) : '') + '</div>' +

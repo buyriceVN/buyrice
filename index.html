@@ -368,6 +368,20 @@ select.sksel{border:1px solid transparent;border-radius:99px;padding:3px 24px 3p
   .topic .acts{opacity:1}
   .sess{grid-template-columns:1fr}
 }
+/* trang Âm thanh game */
+.rs-wrap{overflow-x:auto}
+.rs-tab{width:100%;border-collapse:collapse;font-size:13.5px}
+.rs-tab th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line)}
+.rs-tab td{padding:8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+.rs-tab .rs-cat td{background:var(--panel2);font-weight:700;font-size:12.5px;color:var(--accent)}
+.rs-k{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:var(--panel2);border-radius:5px;padding:1px 6px}
+.rs-vol{white-space:nowrap}.rs-vol input{width:110px;vertical-align:middle;accent-color:var(--accent)}.rs-vol span{display:inline-block;width:40px;text-align:right;font-size:12px}
+.rs-loop{white-space:nowrap;font-size:12.5px;cursor:pointer}
+.rs-act{white-space:nowrap}
+.rs-dis{opacity:.5;pointer-events:none}
+.rs-line{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;line-height:1.5}
+.rs-rec{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--line2)}
+.rs-code{background:#1f2933;color:#e9e4d8;border-radius:10px;padding:12px 14px;font-size:12.5px;overflow-x:auto;line-height:1.55;margin:0}
 </style>
 </head>
 <body>
@@ -458,10 +472,10 @@ const ICON = {
 };
 
 /* ============ state ============ */
-const COLS = ['students', 'tasks', 'sessions', 'subs', 'templates', 'notes', 'plans', 'weekly', 'lessons', 'wordsets'];
+const COLS = ['students', 'tasks', 'sessions', 'subs', 'templates', 'notes', 'plans', 'weekly', 'lessons', 'wordsets', 'rpgsounds'];
 const S = {
   mode: 'loading', role: null, db: null, user: null, assets: null, canWrite: true,
-  data: { students: {}, tasks: {}, sessions: {}, subs: {}, templates: {}, notes: {}, plans: {}, weekly: {}, lessons: {}, wordsets: {} }, openPlans: {}, gsetOpen: null, wk: null, lessonId: null, lessonOpen: null, lessonFull: {},
+  data: { students: {}, tasks: {}, sessions: {}, subs: {}, templates: {}, notes: {}, plans: {}, weekly: {}, lessons: {}, wordsets: {}, rpgsounds: {} }, openPlans: {}, gsetOpen: null, wk: null, lessonId: null, lessonOpen: null, lessonFull: {},
   noteOpen: null, noteDraft: null, noteStatus: '', noteQ: '', notesLocalOnly: false,
   loadedCols: {}, stale: false, banner: '',
   view: 'overview', sid: null, tab: 'roadmap', taskFilter: 'all', tplId: null,
@@ -1363,14 +1377,14 @@ function buildGame(owner) {
 }
 
 /* ============ game nhập vai: Du học Toronto (góc nhìn thứ nhất 3D – mã trong thư mục rpg/) ============ */
-const RPG_VER = '4';
+const RPG_VER = '5';
 let rpgLoading = null;
 function loadRpg() {
   if (window.TorontoRPG && window.TorontoRPG.open) return Promise.resolve();
   if (rpgLoading) return rpgLoading;
   const add = (tag, attrs) => new Promise((ok, no) => { const e = document.createElement(tag); Object.assign(e, attrs); e.onload = ok; e.onerror = no; document.head.appendChild(e); });
   rpgLoading = add('link', { rel: 'stylesheet', href: 'rpg/rpg.css?v=' + RPG_VER })
-    .then(() => ['vendor/three.min', 'data', 'world', 'dialogue', 'scene3d', 'controls', 'game'].reduce((p, f) => p.then(() => (f.startsWith('vendor') && window.THREE) ? null : add('script', { src: 'rpg/' + f + '.js?v=' + RPG_VER })), Promise.resolve()));
+    .then(() => ['vendor/three.min', 'data', 'world', 'sound', 'voice', 'dialogue', 'map', 'scene3d', 'controls', 'game'].reduce((p, f) => p.then(() => (f.startsWith('vendor') && window.THREE) ? null : add('script', { src: 'rpg/' + f + '.js?v=' + RPG_VER })), Promise.resolve()));
   rpgLoading.catch(() => { rpgLoading = null; });
   return rpgLoading;
 }
@@ -1378,7 +1392,7 @@ function rpgPlayerName(owner) { const s = owner !== 'teacher' && S.data.students
 function rpgAvatar(owner) { let id = null; try { id = localStorage.getItem('dino-avatar-' + owner); } catch (e) { } return AVATARS.find(a => a.id === id) || AVATARS[0]; }
 async function openRpg(owner, chId) {
   try { await loadRpg(); } catch (e) { toast('Không tải được game, em kiểm tra mạng rồi thử lại nhé.'); return; }
-  window.TorontoRPG.open({ owner, chId, name: rpgPlayerName(owner), avatar: rpgAvatar(owner).src, teacher: owner === 'teacher' });
+  window.TorontoRPG.open({ owner, chId, name: rpgPlayerName(owner), avatar: rpgAvatar(owner).src, teacher: owner === 'teacher', sounds: S.data.rpgsounds || {} });
 }
 function rpgTemplate() {
   const mk = (title, rpg, topics) => ({ id: uid('m'), title, skill: 'speaking', rpg, topics: topics.map(x => ({ id: uid('t'), title: x })) });
@@ -1388,9 +1402,149 @@ function rpgTemplate() {
       mk('Chương 2 · Tạm biệt gia đình & check-in', 'farewell', ['Hứa hẹn, tạm biệt: I will miss you / I will call you', 'moose vs mouse – phát âm dễ nhầm', 'Check-in: I am flying to… / window or aisle seat', 'Xử lý hành lý quá cân: Can I take some things out?']),
       mk('Chương 3 · Trên máy bay', 'flight', ['Tìm chỗ ngồi: My seat is 32A', 'Gọi món: Chicken with rice, please', 'Xin đồ uống: Could I have some…, please?', 'Hỏi thời tiết: How cold is it…?']),
       mk('Chương 4 · Cửa hải quan Toronto', 'customs', ['Purpose of visit: I am here to study', 'Giấy tờ: letter of introduction, LOA, bank statement', 'Nơi ở: I will be staying in…', 'Khai báo thực phẩm trung thực: I have some…']),
-      mk('Chương 5 · Xin chào Toronto', 'toronto', ['Tự giới thiệu: I am… Nice to meet you', 'Gọi đồ uống: Can I get a medium coffee, please?', 'Hỏi lại khi chưa hiểu: What does … mean?', 'Thanh toán: Card, please / Gọi về nhà: I made it!'])]
+      mk('Chương 5 · Sảnh đến Pearson: nhóm bạn ra đón', 'toronto', ['Tự giới thiệu & giới thiệu nhau: I’m… / This is…', 'Hỏi lại tên: Sorry, how do you say your name?', 'Small talk: chuyến bay, jet lag, thời tiết mùa hè (eh?)', 'Tiếng lóng: it’s giving…, bet, slay, lowkey']),
+      mk('Chương 6 · Gọi Uber về North York & phố Hàn', 'uber', ['Đi xe công nghệ an toàn: Who’s it for? / check the plate', 'Small talk với tài xế: kẹt xe 401, dây an toàn', 'Mua hàng: Can I get…? / How much is it? / Can I tap?', 'Hỏi chỗ: Where can I find…? / Is this one spicy?']),
+      mk('Chương 7 · Tim Hortons (“Tims”)', 'tims', ['Gọi Iced Capp & Timbits, chọn size và vị', 'Hỏi lại khi nghe không kịp: Sorry, could you say that again?', 'Debit or credit? Văn hoá tip ở Canada', 'Từ vựng Canada: double-double, washroom, toque, loonie/toonie']),
+      mk('Chương 8 · Bản đồ Toronto & nhà mình', 'map', ['6 khu của Toronto: Old Toronto, North York, Scarborough, Etobicoke, York, East York', 'Đọc bản đồ tàu: Line 1–6, streetcar, UP Express, GO', 'Tìm đường từ A đến B: southbound / northbound, transfer', 'Hẹn gặp: See you at ten!']),
+      mk('Chương 9 · Đi chơi Downtown & học đi lại', 'downtown', ['Thẻ PRESTO: load, tap, transfer', 'Hỏi đường trong ga: Which platform for…?', 'Nghe thông báo trên tàu: next station, delay, change for…', 'Chọn TTC hay Hopp / Uber / Lyft'])]
   };
 }
+
+/* ============ 🎵 Âm thanh game (giáo viên tự thêm âm thanh cho game nhập vai, không cần code) ============
+   File tải lên lưu ở Supabase Storage: bucket "media", thư mục rpg-sounds/.
+   Bảng ánh xạ key → { url, path, volume, loop, label } lưu trong bảng docs với col = 'rpgsounds' (mỗi key một dòng).
+   Học sinh nhận bảng này qua hàm student_bundle (xem update_rpgsounds.sql). */
+const RS_MAX = 5 * 1024 * 1024;
+const rsId = key => 's_' + String(key).replace(/[^A-Za-z0-9_.-]/g, '_').slice(0, 120);
+function rsDoc(key) { const d = (S.data.rpgsounds || {})[rsId(key)]; return d && d.key === key ? d : null; }
+function rsSync() { const R = window.TorontoRPG; if (R && R.Sound) R.Sound.setRemote(S.data.rpgsounds || {}); }
+let rsReady = false, rsLoadingP = null, rsPlaying = null, rsBusy = null, rsVolT = {};
+function rsEnsure() {
+  if (rsReady || rsLoadingP) return;
+  rsLoadingP = loadRpg().then(() => { const R = window.TorontoRPG; return R.Sound.init({ remote: S.data.rpgsounds || {} }); })
+    .then(() => { rsReady = true; render(); }).catch(() => { rsLoadingP = null; toast('Không tải được dữ liệu game, kiểm tra mạng rồi thử lại.'); });
+}
+function rsRows() {
+  const R = window.TorontoRPG, rows = R.Sound.DEFAULTS.map(d => Object.assign({}, d));
+  Object.values(S.data.rpgsounds || {}).forEach(d => { if (d && d.key && d.custom && !/^voice:/.test(d.key) && !rows.some(r => r.key === d.key)) rows.push({ key: d.key, label: d.label || d.key, group: R.Sound.groupOf(d.key), cat: 'Sự kiện bạn tự thêm', custom: 1 }); });
+  return rows;
+}
+const RS_FROM = { upload: '<span class="tag teal">File tải lên</span>', file: '<span class="tag acc">rpg/sounds/</span>', default: '<span class="tag">Âm mặc định</span>' };
+function rsRow(r) {
+  const R = window.TorontoRPG, d = rsDoc(r.key), e = R.Sound.entry(r.key), vol = Math.round((d && d.volume != null ? d.volume : e.volume) * 100), loop = d && d.loop != null ? !!d.loop : !!r.loop, cloud = S.mode === 'cloud';
+  return '<tr><td><code class="rs-k">' + esc(r.key) + '</code><div class="small">' + esc(r.label) + (r.group === 'music' ? ' <span class="tag">🎵 nhạc</span>' : '') + '</div>' + (d && d.fileName ? '<div class="small muted">📎 ' + esc(d.fileName) + '</div>' : '') + '</td>' +
+    '<td>' + RS_FROM[e.from] + '</td>' +
+    '<td><button class="btn sm" data-rs="play" data-k="' + esc(r.key) + '">' + (rsPlaying === r.key ? '■ Dừng' : '▶ Nghe') + '</button></td>' +
+    '<td>' + (rsBusy === r.key ? '<span class="muted small">Đang tải lên…</span>' : '<label class="btn sm' + (cloud ? '' : ' rs-dis') + '" title="' + (cloud ? 'mp3 / m4a / ogg / wav, tối đa 5MB' : 'Cần đăng nhập giáo viên (Supabase)') + '">⬆ Tải file lên<input type="file" accept="audio/*,.mp3,.m4a,.ogg,.wav" data-rsfile="' + esc(r.key) + '" hidden' + (cloud ? '' : ' disabled') + '></label>') + '</td>' +
+    '<td class="rs-vol"><input type="range" min="0" max="150" step="5" value="' + vol + '" data-rsvol="' + esc(r.key) + '"><span>' + vol + '%</span></td>' +
+    '<td><label class="rs-loop"><input type="checkbox" data-rsloop="' + esc(r.key) + '"' + (loop ? ' checked' : '') + '> lặp</label></td>' +
+    '<td class="rs-act">' + (d && (d.url || (!r.custom && (d.volume != null || d.loop != null))) ? '<button class="btn sm ghost" data-rs="reset" data-k="' + esc(r.key) + '" title="Bỏ file tải lên, dùng lại âm mặc định">↺ Mặc định</button>' : '') + (r.custom ? '<button class="ib del" data-rs="del" data-k="' + esc(r.key) + '" title="Xoá sự kiện">' + ICON.trash + '</button>' : '') + '</td></tr>';
+}
+let rsSel = { ch: 4, npc: '', line: '' };
+function rsVoiceCard() {
+  const R = window.TorontoRPG, all = R.allLines(), chs = R.CHAPTERS;
+  if (!chs[rsSel.ch]) rsSel.ch = 0;
+  const inCh = all.filter(l => l.chIdx === rsSel.ch), npcs = [...new Map(inCh.map(l => [l.npc, l.name])).entries()];
+  if (!npcs.some(([id]) => id === rsSel.npc)) rsSel.npc = npcs.length ? npcs[0][0] : '';
+  const lines = inCh.filter(l => l.npc === rsSel.npc); if (!lines.some(l => l.id === rsSel.line)) rsSel.line = lines.length ? lines[0].id : '';
+  const L = lines.find(l => l.id === rsSel.line), key = L ? 'voice:' + L.id : '', d = key ? rsDoc(key) : null, cloud = S.mode === 'cloud';
+  const recs = Object.values(S.data.rpgsounds || {}).filter(x => x && /^voice:/.test(x.key) && x.url);
+  return '<div class="card pad" style="margin-top:18px"><h3>🎙️ Thu âm câu thoại (giọng thật thay giọng máy)</h3><div class="small muted" style="margin:4px 0 12px">Chọn nhân vật và câu thoại, rồi tải lên file bạn tự thu. Trong game, câu đó sẽ phát file của bạn thay cho giọng đọc máy. Key dạng <code>voice:&lt;id câu&gt;</code>.</div>' +
+    '<div class="f3"><label class="f"><span>Chương</span><select class="inp" data-rssel="ch">' + chs.map((c, i) => '<option value="' + i + '"' + (i === rsSel.ch ? ' selected' : '') + '>' + (i + 1) + '. ' + esc(c.title) + '</option>').join('') + '</select></label>' +
+    '<label class="f"><span>Nhân vật</span><select class="inp" data-rssel="npc">' + npcs.map(([id, n]) => '<option value="' + esc(id) + '"' + (id === rsSel.npc ? ' selected' : '') + '>' + esc(n) + '</option>').join('') + '</select></label>' +
+    '<label class="f"><span>Câu thoại</span><select class="inp" data-rssel="line">' + lines.map(l => '<option value="' + esc(l.id) + '"' + (l.id === rsSel.line ? ' selected' : '') + '>' + (rsDoc('voice:' + l.id) && rsDoc('voice:' + l.id).url ? '🎙️ ' : '') + esc(l.en.slice(0, 70)) + (l.en.length > 70 ? '…' : '') + '</option>').join('') + '</select></label></div>' +
+    (L ? '<div class="rs-line"><div><b>' + esc(L.name) + ':</b> ' + esc(L.en) + '</div><div class="small muted">' + esc(L.vi) + '</div>' + (L.reply ? '<div class="small muted">↳ trả lời khi người chơi chọn: “' + esc(L.reply) + '”</div>' : '') + '<div class="small muted">id: <code>' + esc(L.id) + '</code></div></div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn sm" data-rs="vplay" data-k="' + esc(key) + '">' + (rsPlaying === key ? '■ Dừng' : '▶ Nghe ' + (d && d.url ? '(file của bạn)' : '(giọng máy)')) + '</button>' +
+      (rsBusy === key ? '<span class="muted small">Đang tải lên…</span>' : '<label class="btn sm pri' + (cloud ? '' : ' rs-dis') + '">🎙️ ' + (d && d.url ? 'Thay file giọng' : 'Tải file giọng thật') + '<input type="file" accept="audio/*,.mp3,.m4a,.ogg,.wav" data-rsfile="' + esc(key) + '" data-voice="1" hidden' + (cloud ? '' : ' disabled') + '></label>') +
+      (d && d.url ? '<button class="btn sm ghost danger" data-rs="reset" data-k="' + esc(key) + '">Xoá file, dùng lại giọng máy</button>' : '') + '</div>' : '<div class="muted small">Chương này chưa có câu thoại.</div>') +
+    (recs.length ? '<div style="margin-top:14px"><div class="small muted" style="margin-bottom:6px">Đã có ' + recs.length + ' câu dùng giọng thật:</div>' + recs.map(x => { const l = all.find(q => 'voice:' + q.id === x.key); return '<div class="rs-rec"><span class="tag teal">🎙️</span> <b>' + esc(l ? l.name : '?') + '</b> <span class="small">' + esc(l ? l.en.slice(0, 80) : x.key) + '</span><span class="grow"></span><button class="btn sm ghost" data-rs="vgo" data-id="' + esc(x.key.slice(6)) + '">Chọn</button></div>'; }).join('') + '</div>' : '') + '</div>';
+}
+function vSounds() {
+  rsEnsure();
+  const head = '<div class="head"><div><h1>🎵 Âm thanh game · Du học Toronto</h1><div class="sub">Thay nhạc nền, hiệu ứng và giọng đọc trong game nhập vai. Không cần biết code: tải file lên, nghe thử, chỉnh âm lượng.</div></div><div class="row"><button class="btn" data-act="rpgPlay" data-ch="" data-o="teacher">🎮 Chơi thử game</button><button class="btn pri" data-rs="add">' + ICON.plus + 'Thêm sự kiện mới</button></div></div>';
+  const note = '<div class="banner info">⚖️ Chỉ dùng file bạn có quyền dùng: tự thu, hoặc từ nguồn miễn phí bản quyền như Pixabay hay Freesound (giấy phép CC0). Không dùng bài hát có bản quyền. File mp3 / m4a / ogg / wav, tối đa 5MB.</div>' +
+    (S.mode !== 'cloud' ? '<div class="banner warn">Đang ở chế độ thử (chưa kết nối Supabase): vẫn chỉnh được âm lượng và nghe thử, nhưng muốn tải file lên thì cần đăng nhập tài khoản giáo viên.</div>' : '');
+  if (!rsReady) return head + note + '<div class="card pad muted">Đang tải dữ liệu game…</div>';
+  rsSync();
+  const rows = rsRows(), cats = [...new Set(rows.map(r => r.cat))];
+  const table = '<div class="card pad"><div class="rs-wrap"><table class="rs-tab"><thead><tr><th>Sự kiện (key)</th><th>Đang dùng</th><th>Nghe thử</th><th>File</th><th>Âm lượng</th><th>Lặp lại</th><th></th></tr></thead>' +
+    cats.map(c => '<tbody><tr class="rs-cat"><td colspan="7">' + esc(c) + '</td></tr>' + rows.filter(r => r.cat === c).map(rsRow).join('') + '</tbody>').join('') + '</table></div>' +
+    '<div class="small muted" style="margin-top:8px">Thứ tự ưu tiên khi game phát một key: <b>file tải lên ở trang này</b> → file trong thư mục <code>rpg/sounds/</code> (khai báo ở <code>sounds.json</code>) → <b>âm mặc định</b> tự tạo bằng Web Audio. Học sinh nghe âm mới ở lần mở game tiếp theo.</div></div>';
+  const how = '<div class="card pad" style="margin-top:18px"><h3>🔗 Gắn âm vào hành động (cho người sửa code <code>rpg/data.js</code>)</h3><div class="small muted" style="margin:4px 0 10px">Sự kiện bạn tự thêm (ví dụ <code>hug_friends</code>) cần được gắn vào một chỗ trong game. Mọi chỗ dưới đây đều nhận thuộc tính tuỳ chọn:</div>' +
+    '<pre class="rs-code">// bước hội thoại\nS("Group hug!", "Ôm tập thể!", null, \'hug_friends\')        // = { t:\'s\', ..., sound:\'hug_friends\' }\n// lựa chọn trả lời\n{ en:\'...\', ok:1, sound:\'correct\' }\n// nhận đồ\nI(\'iced_capp\', \'iced_capp_sip\')                            // = { t:\'i\', item:\'iced_capp\', sound:\'iced_capp_sip\' }\n// khu vực / chương (nhạc nền)\nzones: [{ name:\'Tims\', music:\'music_tims\', x:1, y:1, w:22, h:14 }]\n// vật tương tác\n{ id:\'gate\', object:1, kind:\'presto\', sound:\'presto_tap\' }\n// nhiệm vụ\n{ id:\'o2\', text:\'...\', target:\'officer\', onDone:\'customs_stamp\' }</pre>' +
+    '<div class="small muted" style="margin-top:8px">Hoặc thả file vào thư mục <code>rpg/sounds/</code> và thêm một dòng vào <code>rpg/sounds/sounds.json</code>: <code>"iced_capp_sip": { "file": "iced-capp-sip.mp3", "volume": 0.8 }</code></div></div>';
+  return head + note + table + rsVoiceCard() + how;
+}
+function rsAddModal() {
+  const m = openModal(mHead('Thêm sự kiện âm thanh mới') + '<form id="rsf"><div class="mb">' +
+    '<label class="f"><span>Tên sự kiện (key)</span><input class="inp" name="key" required pattern="[a-z0-9_]{2,40}" placeholder="vd: hug_friends"><small>Chỉ chữ thường không dấu, số và dấu gạch dưới. Dùng tên này để gắn vào hành động trong data.js.</small></label>' +
+    '<label class="f"><span>Mô tả tiếng Việt</span><input class="inp" name="label" required maxlength="80" placeholder="vd: Cả nhóm ôm nhau ở cuối chương 9"></label>' +
+    '<label class="f"><span>Loại</span><select class="inp" name="kind"><option value="sfx">🔔 Hiệu ứng (phát một lần)</option><option value="music">🎵 Nhạc nền (lặp lại, key nên bắt đầu bằng music_)</option></select></label>' +
+    '</div><div class="mf"><button type="button" class="btn" data-close>Huỷ</button><button class="btn pri">Thêm</button></div></form>');
+  m.querySelector('#rsf').onsubmit = async e => {
+    e.preventDefault(); const f = new FormData(e.target); let key = String(f.get('key') || '').trim().toLowerCase(); const kind = f.get('kind');
+    if (kind === 'music' && !/^music/.test(key)) key = 'music_' + key;
+    if (!/^[a-z0-9_]{2,46}$/.test(key)) return toast('Key chỉ gồm chữ thường, số và dấu gạch dưới.');
+    if (rsRows().some(r => r.key === key)) return toast('Key này đã có rồi.');
+    closeModal(); await saveDoc('rpgsounds', rsId(key), { key, label: String(f.get('label') || '').trim(), custom: true, loop: kind === 'music', createdAt: new Date().toISOString() });
+    toast('Đã thêm “' + key + '”. Tải file lên rồi gắn key vào hành động trong data.js nhé.');
+  };
+}
+async function rsUpload(key, file, voice) {
+  if (!file) return;
+  if (!/^audio\//.test(file.type || '') && !/\.(mp3|m4a|ogg|wav|aac)$/i.test(file.name)) return toast('Chỉ nhận file âm thanh: mp3, m4a, ogg, wav.');
+  if (file.size > RS_MAX) return toast('File lớn hơn 5MB. Hãy cắt ngắn hoặc nén lại (mp3 128 kbps là đủ).');
+  if (S.mode !== 'cloud' || !sb) return toast('Cần đăng nhập tài khoản giáo viên (Supabase) để tải file lên.');
+  rsBusy = key; render();
+  try {
+    const ext = ((file.name.match(/\.[A-Za-z0-9]+$/) || ['.mp3'])[0]).toLowerCase();
+    const path = 'rpg-sounds/' + key.replace(/[^A-Za-z0-9_.-]/g, '_').slice(0, 80) + '-' + uid('') + ext;
+    const { error } = await sb.storage.from('media').upload(path, file, { contentType: file.type || undefined, upsert: false }); if (error) throw error;
+    const url = sb.storage.from('media').getPublicUrl(path).data.publicUrl;
+    const old = rsDoc(key), R = window.TorontoRPG, def = R.Sound.DEFAULTS.find(d => d.key === key);
+    const body = Object.assign({ key, label: def ? def.label : key }, old || {}, { url, path, fileName: file.name.slice(-80), updatedAt: new Date().toISOString() });
+    if (voice) { const l = R.allLines().find(x => 'voice:' + x.id === key); if (l) body.label = l.name + ': ' + l.en.slice(0, 80); }
+    const ok = await saveDoc('rpgsounds', rsId(key), body);
+    if (ok && old && old.path && old.path !== path) sb.storage.from('media').remove([old.path]).catch(() => { });
+    if (ok) toast('Đã tải lên! Bấm ▶ để nghe thử. Học sinh nghe được ở lần mở game tiếp theo.');
+  } catch (e) { toast('Tải lên chưa được: ' + ((e && e.message) || 'lỗi không rõ')); }
+  rsBusy = null; render();
+}
+async function rsReset(key) {
+  const d = rsDoc(key); if (!d) return;
+  if (d.path && sb && S.mode === 'cloud') sb.storage.from('media').remove([d.path]).catch(() => { });
+  if (d.custom) await saveDoc('rpgsounds', rsId(key), { key, label: d.label, custom: true, loop: !!d.loop, createdAt: d.createdAt });
+  else await delDoc('rpgsounds', rsId(key));
+  toast('Đã quay về âm mặc định.');
+}
+function rsStop() { const R = window.TorontoRPG; if (R && R.Sound) R.Sound.stopPreview(); if (R && R.stopSpeech) R.stopSpeech(); rsPlaying = null; }
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-rs]'); if (!b || !$('#root').contains(b)) return;
+  const R = window.TorontoRPG, a = b.dataset.rs, k = b.dataset.k;
+  if (a === 'add') return rsAddModal();
+  if (a === 'play' || a === 'vplay') {
+    if (rsPlaying === k) { rsStop(); render(); return; }
+    rsStop(); rsSync();
+    if (a === 'vplay' && !(rsDoc(k) && rsDoc(k).url)) { const l = R.allLines().find(x => 'voice:' + x.id === k); const ch = l && R.CHAPTERS[l.chIdx]; const n = ch && ch.npcs.find(q => q.id === l.npc); if (l) R.say(l.en, { who: n || null }); rsPlaying = k; render(); setTimeout(() => { if (rsPlaying === k) { rsPlaying = null; render(); } }, 1500 + l.en.length * 70); return; }
+    const h = R.Sound.preview(k, rsDoc(k) || undefined); rsPlaying = k; render();
+    const e2 = R.Sound.entry(k, rsDoc(k) || undefined); if (!(e2.loop)) setTimeout(() => { if (rsPlaying === k) { rsPlaying = null; render(); } }, e2.url ? 6000 : 3500);
+    return;
+  }
+  if (a === 'reset') { rsStop(); await rsReset(k); return; }
+  if (a === 'del') { if (!(await confirmBox('Xoá sự kiện “' + k + '”? Chỗ nào trong game đang dùng key này sẽ phát âm mặc định.', 'Xoá', true))) return; const d = rsDoc(k); if (d && d.path && sb) sb.storage.from('media').remove([d.path]).catch(() => { }); await delDoc('rpgsounds', rsId(k)); return; }
+  if (a === 'vgo') { const l = R.allLines().find(x => x.id === b.dataset.id); if (l) { rsSel = { ch: l.chIdx, npc: l.npc, line: l.id }; render(); } }
+});
+document.addEventListener('change', async e => {
+  const el = e.target; if (!el.dataset || !$('#root').contains(el)) return;
+  if (el.dataset.rsfile) { const f = el.files && el.files[0]; el.value = ''; await rsUpload(el.dataset.rsfile, f, !!el.dataset.voice); return; }
+  if (el.dataset.rsloop) { const k = el.dataset.rsloop, d = rsDoc(k); await saveDoc('rpgsounds', rsId(k), Object.assign({ key: k }, d || {}, { loop: el.checked, updatedAt: new Date().toISOString() })); return; }
+  if (el.dataset.rssel) { rsStop(); const v = el.value; if (el.dataset.rssel === 'ch') rsSel = { ch: +v, npc: '', line: '' }; else if (el.dataset.rssel === 'npc') rsSel.npc = v, rsSel.line = ''; else rsSel.line = v; render(); }
+});
+document.addEventListener('input', e => {
+  const el = e.target; if (!el.dataset || !el.dataset.rsvol) return;
+  const k = el.dataset.rsvol, v = +el.value; const sp = el.nextElementSibling; if (sp) sp.textContent = v + '%';
+  clearTimeout(rsVolT[k]); rsVolT[k] = setTimeout(() => { const d = rsDoc(k); saveDoc('rpgsounds', rsId(k), Object.assign({ key: k }, d || {}, { volume: v / 100, updatedAt: new Date().toISOString() })); }, 500);
+});
 
 const rpgBtn = (ch, owner) => '<button class="btn sm rpgbtn" data-act="rpgPlay" data-ch="' + ch + '" data-o="' + owner + '">🎮 Nhập vai</button>';
 /* ============ words of the week (mỗi từ hiện 7 ngày kể từ ngày bắt đầu) ============ */
@@ -1613,6 +1767,7 @@ function go(view, extra = {}) {
   else if (view === 'weekly') h = 'tu-cua-tuan';
   else if (view === 'lessons') h = 'bai-giang';
   else if (view === 'game') h = 'tro-choi';
+  else if (view === 'sounds') h = 'am-thanh-game';
   else if (view === 'lesson' && S.lessonId) h = 'bai-giang-' + S.lessonId;
   if (S.role === 'teacher' && h && location.hash !== '#' + h) { try { history.replaceState(null, '', '#' + h); } catch (e) { location.hash = h; } }
   render(); window.scrollTo(0, 0);
@@ -1626,6 +1781,7 @@ function readHash() {
   else if (h === 'tu-cua-tuan') S.view = 'weekly';
   else if (h === 'bai-giang') S.view = 'lessons';
   else if (h === 'tro-choi') S.view = 'game';
+  else if (h === 'am-thanh-game') S.view = 'sounds';
   else if (h.startsWith('bai-giang-') && S.data.lessons[h.slice(10)]) { S.view = 'lesson'; S.lessonId = h.slice(10); }
   else S.view = 'overview';
 }
@@ -1696,6 +1852,7 @@ function renderTeacher() {
   else if (S.view === 'weekly') main = vWeekly();
   else if (S.view === 'lessons') main = vLessons();
   else if (S.view === 'game') main = vGame();
+  else if (S.view === 'sounds') main = vSounds();
   else if (S.view === 'lesson' && S.data.lessons[S.lessonId]) main = vLesson(S.lessonId);
   else if (S.view === 'lesson') main = vLessons();
   else main = vOverview();
@@ -1703,7 +1860,7 @@ function renderTeacher() {
   return '<div class="topbar"><button data-act="side">' + ICON.menu + '</button><b>Sổ Lộ Trình</b></div>' +
     '<div class="app"><aside class="side ' + (S.sideOpen ? 'open' : '') + '">' +
     '<div class="brand"><div class="logo">' + ICON.map + '</div><div><b>Sổ Lộ Trình</b><small>Quản lý học sinh gia sư</small></div></div>' +
-    navBtn('overview', 'Tổng quan', ICON.home) + navBtn('lessons', 'Bài giảng', ICON.board, S.view === 'lesson') + navBtn('weekly', 'Từ của tuần', ICON.spark) + navBtn('templates', 'Mẫu lộ trình', ICON.book) + navBtn('help', 'Chia sẻ cho học sinh', ICON.share) +
+    navBtn('overview', 'Tổng quan', ICON.home) + navBtn('lessons', 'Bài giảng', ICON.board, S.view === 'lesson') + navBtn('weekly', 'Từ của tuần', ICON.spark) + navBtn('templates', 'Mẫu lộ trình', ICON.book) + navBtn('sounds', '🎵 Âm thanh game', ICON.head) + navBtn('help', 'Chia sẻ cho học sinh', ICON.share) +
     '<div class="sec"><span>Học sinh (' + studs.length + ')</span><button data-act="addStudent">+ Thêm</button></div>' +
     studs.map(s => '<button class="stu-link ' + (S.view === 'student' && S.sid === s.id ? 'on' : '') + '" data-act="openStudent" data-id="' + s.id + '"><span class="dot" style="background:' + esc(s.color) + '"></span><span class="nm">' + esc(s.name) + '</span><span class="pc">' + coverage(s).pct + '%</span></button>').join('') +
     (studs.length ? '' : '<div class="small" style="padding:4px 10px;color:#a09b8d">Chưa có học sinh.</div>') +

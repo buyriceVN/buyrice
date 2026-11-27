@@ -1309,7 +1309,7 @@ function buildGame(owner) {
     g.run = (g.run || 0) + g.speed * f;   // quãng đường đã chạy kể từ từ trước (không phụ thuộc chướng ngại vật còn trên màn hình hay không)
     if (!g.lastBig || g.run >= g.nextGap) { g.run = 0; spawn(); }
     for (const o of g.obs) {
-      if (!o.passed && o.x + o.w < dino.x + 10) { o.passed = true; if (!o.word) continue; g.passed.push(o.word); g.floats.push({ w: o.word, life: 90 }); if (g.floats.length > 1) g.floats.shift(); if (snd.checked) sayText(o.word.text, { rate: 1.2 }); }
+      if (!o.passed && o.x + o.w < dino.x + 10) { o.passed = true; if (!o.word) continue; g.passed.push(o.word); g.floats.push({ w: o.word, life: 90 }); if (g.floats.length > 1) g.floats.shift(); if (snd.checked) sayText(o.word.text, { rate: 1.0 }); }
       if (!o.passed && hits(o)) { over(o); return; }
     }
     g.obs = g.obs.filter(o => o.x + Math.max(o.w, o.tw / 2 + o.w / 2) > -10);

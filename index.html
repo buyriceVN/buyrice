@@ -1226,7 +1226,7 @@ function buildGame(owner) {
     }
   }
   function reset() {
-    loadWords(); g.lastBig = null; g.score = 0; g.speed = 6.2 * sf; g.t = 0; g.obs = []; g.floats = []; g.passed = []; g.hit = null; g.nextGap = 120;
+    loadWords(); g.lastBig = null; g.score = 0; g.speed = 6.2 * sf; g.t = 0; g.obs = []; g.floats = []; g.passed = []; g.hit = null; g.nextGap = 120; g.run = 0;
     g.clouds = [0, 1, 2].map(i => ({ x: 120 + i * 300 + Math.random() * 100, y: 30 + Math.random() * 60 }));
     Object.assign(dino, { y: GROUND - DH, vy: 0, duck: false, jumping: false, jumps: 0, flip: 0 });
   }
@@ -1306,7 +1306,8 @@ function buildGame(owner) {
     if (dino.flip) dino.flip = Math.max(0, dino.flip - 0.21 * f);
     dino.ft += f; if (dino.ft > 6) { dino.ft = 0; dino.frame ^= 1; }
     g.obs.forEach(o => { o.x -= (g.speed + (o.kind === 'bird' ? 0.6 : 0)) * f; o.flap += f; });
-    const last = g.lastBig; if (!last || last.x < W + 20 - g.nextGap) spawn();
+    g.run = (g.run || 0) + g.speed * f;   // quãng đường đã chạy kể từ từ trước (không phụ thuộc chướng ngại vật còn trên màn hình hay không)
+    if (!g.lastBig || g.run >= g.nextGap) { g.run = 0; spawn(); }
     for (const o of g.obs) {
       if (!o.passed && o.x + o.w < dino.x + 10) { o.passed = true; if (!o.word) continue; g.passed.push(o.word); g.floats.push({ w: o.word, life: 90 }); if (g.floats.length > 1) g.floats.shift(); if (snd.checked) sayText(o.word.text, { rate: 1.2 }); }
       if (!o.passed && hits(o)) { over(o); return; }

@@ -1218,7 +1218,7 @@ function buildGame(owner) {
     o.x = W + 20; o.word = w; o.tw = tw; o.passed = false; o.flap = 0;
     g.obs.push(o); g.lastBig = o;
     const air = 38 * g.speed;  // quãng đường bay được trong 1 lần nhảy
-    const gap = Math.max(air * (4.6 + Math.random() * 1.6), tw / 2 + 200 + o.w, 720);   // giãn khoảng cách để kịp đọc từ trước khi từ mới tới (~3–4 giây)
+    const gap = Math.max(air * (6.9 + Math.random() * 2.4), tw / 2 + 300 + o.w, 1080);   // giãn khoảng cách để kịp đọc từ trước khi từ mới tới (~4,5–6 giây)
     g.nextGap = gap;
     if (Math.random() < 0.75) {
       const sw = 14 + Math.random() * 9, sh = 10 + Math.random() * 7;
